@@ -54,14 +54,14 @@ export default function UserCourses({ user }) {
   const loadReminderSystemData = async () => {
     try {
       // Load pending reminders
-      const pendingRes = await fetch('http://localhost:8090/courses/admin/reminders/pending');
+      const pendingRes = await fetch('http://localhost:8088/courses/admin/reminders/pending');
       const pendingData = await pendingRes.json();
       if (pendingData.success) {
         setPendingReminders(pendingData.data || []);
       }
 
       // Load system status
-      const statusRes = await fetch('http://localhost:8090/courses/admin/reminders/status');
+      const statusRes = await fetch('http://localhost:8088/courses/admin/reminders/status');
       const statusData = await statusRes.json();
       if (statusData.success) {
         setSystemStatus(statusData.data);
@@ -91,7 +91,7 @@ export default function UserCourses({ user }) {
     if (window.confirm('Send automatic reminders to all employees with low progress after 15 days?')) {
       setSendingReminders(true);
       try {
-        const response = await fetch('http://localhost:8090/courses/admin/reminders/send-automatic', {
+        const response = await fetch('http://localhost:8088/courses/admin/reminders/send-automatic', {
           method: 'POST'
         });
         const result = await response.json();
@@ -228,7 +228,7 @@ export default function UserCourses({ user }) {
   if (loading) return <div className="text-center p-4">Loading employee data...</div>;
 
   return (
-    <div className="container-fluid">
+    <div className="container-fluid px-3 px-md-4 py-4 ">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
           <h2 className="mb-1 fw-bold">📈 User Courses & Progress</h2>
@@ -236,10 +236,11 @@ export default function UserCourses({ user }) {
             Monitor employee learning progress with automatic reminders
           </small>
         </div>
-        <div className="d-flex gap-2">
+        {/* <div className="d-flex gap-2"> */}
+        <div className="d-flex flex-wrap gap-2 justify-content-center justify-content-md-end">
           {/* 🆕 NEW: Automatic Reminder System Status */}
           {systemStatus && (
-            <div className="alert alert-info mb-0 me-2 py-2">
+            <div className="alert alert-info alert-sm px-2 shadow-sm mb-0 me-2 py-2" style={{ width: "fit-content", height: "fit-content" }}>
               <small>
                 <strong>Auto-Reminders:</strong> {systemStatus.systemStatus} • 
                 <strong> Next:</strong> {new Date(systemStatus.nextRun).toLocaleString()} •
@@ -248,7 +249,7 @@ export default function UserCourses({ user }) {
             </div>
           )}
           
-          <button 
+          {/* <button 
             className="btn btn-outline-primary" 
             onClick={() => {
               loadInitialData();
@@ -256,11 +257,12 @@ export default function UserCourses({ user }) {
             }}
           >
             🔄 Refresh
-          </button>
+          </button> */}
           
           {/* 🆕 NEW: Trigger Automatic Reminders Button */}
           <button
-            className="btn btn-warning"
+            className="btn btn-warning btn-sm px-2 shadow-sm"
+            style={{ width: "fit-content" }}
             onClick={triggerAutomaticReminders}
             disabled={sendingReminders || pendingReminders.length === 0}
           >
@@ -303,12 +305,23 @@ export default function UserCourses({ user }) {
       </div>
 
       {/* Employees List */}
-      <div className="row">
-        <div className="col-md-5">
-          <div className="card">
-            <div className="card-header bg-light d-flex justify-content-between align-items-center">
-              <h5 className="card-title mb-0">👥 Employees</h5>
-              <div className="d-flex align-items-center gap-2">
+      <div className="row justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
+        {/* <div className="col-md-5"> */}
+        <div className="col-12 col-lg-5 mb-4">
+          <div className="card shadow-sm border-0 rounded-4 h-100">
+            {/* <div className="card-header bg-light d-flex justify-content-between align-items-center"> */}
+            <div className="card-header bg-light py-3">
+              {/* <h5 className="card-title mb-0">👥 Employees</h5> */}
+              <h4 className="fw-bold text-center mb-3">
+                {selectedEmployee
+                  ? `📚 Course Progress for ${
+                      employees.find(e => e.id === selectedEmployee)?.firstName
+                    } ${
+                      employees.find(e => e.id === selectedEmployee)?.lastName
+                    }`
+                  : '📚 Select an Employee'}
+              </h4>
+              <div className="d-flex justify-content-center align-items-center gap-2">
                 {/* Custom Dropdown for employees per page */}
                 <div className="employee-dropdown-container position-relative">
                   <button 
@@ -355,7 +368,7 @@ export default function UserCourses({ user }) {
                 <span className="badge bg-secondary">{filteredEmployees.length}</span>
               </div>
             </div>
-            <div className="card-body p-0" style={{ maxHeight: '600px', overflowY: 'auto' }}>
+            <div className="card-body p-4" style={{ maxHeight: '600px', overflowY: 'auto' }}>
               {filteredEmployees.length === 0 ? (
                 <div className="text-center p-4">
                   <p className="text-muted">No employees found</p>
@@ -371,7 +384,7 @@ export default function UserCourses({ user }) {
                       return (
                         <div
                           key={employee.id}
-                          className={`list-group-item list-group-item-action ${
+                          className={`list-group-item list-group-item-action py-3 px-3 ${
                             selectedEmployee === employee.id ? 'active' : ''
                           } ${needsReminder ? 'border-warning border-start-4' : ''}`}
                           style={{ cursor: 'pointer' }}
@@ -393,7 +406,7 @@ export default function UserCourses({ user }) {
                               
                               {/* Progress Stats */}
                               <div className="mt-2">
-                                <div className="d-flex justify-content-between small">
+                                <div className="d-flex justify-content-between large">
                                   <span>Total: {stats.total}</span>
                                   <span className="text-success">Completed: {stats.completed}</span>
                                   <span className="text-warning">In Progress: {stats.inProgress}</span>
@@ -417,7 +430,8 @@ export default function UserCourses({ user }) {
                           
                           {/* Progress Bar */}
                           <div className="mt-2">
-                            <div className="progress" style={{ height: '8px' }}>
+                            {/* <div className="progress" style={{ height: '8px' }}> */}
+                            <div className="progress rounded-pill" style={{ height: '12px' }}>
                               <div
                                 className="progress-bar bg-success"
                                 style={{ width: `${stats.total > 0 ? (stats.completed / stats.total) * 100 : 0}%` }}
@@ -496,12 +510,22 @@ export default function UserCourses({ user }) {
         </div>
 
         {/* Selected Employee Details */}
-        <div className="col-md-7">
-          <div className="card">
-            <div className="card-header bg-light d-flex justify-content-between align-items-center">
-              <h5 className="card-title mb-0">
+        {/* <div className="col-md-7"> */}
+        <div className="col-12 col-lg-7">
+          <div className="card shadow-sm border-0 rounded-4 h-100 ">
+            <div className="card-header bg-light d-flex ">
+              {/* <h5 className="card-title mb-0">
                 {selectedEmployee ? `📚 Course Progress for ${employees.find(e => e.id === selectedEmployee)?.firstName} ${employees.find(e => e.id === selectedEmployee)?.lastName}` : 'Select an employee'}
-              </h5>
+              </h5> */}
+              <h4 className="fw-bold mb-3">
+                {selectedEmployee
+                  ? `📚 Course Progress for ${
+                      employees.find(e => e.id === selectedEmployee)?.firstName
+                    } ${
+                      employees.find(e => e.id === selectedEmployee)?.lastName
+                    }`
+                  : '📚 Select an Employee'}
+              </h4>
               <div className="d-flex align-items-center gap-2">
                 {selectedEmployee && enrollments.length > 0 && (
                   <>
@@ -552,7 +576,7 @@ export default function UserCourses({ user }) {
                 )}
               </div>
             </div>
-            <div className="card-body">
+            <div className="card-body p-4">
               {!selectedEmployee ? (
                 <div className="text-center p-4">
                   <div className="text-muted mb-3" style={{ fontSize: '3rem' }}>👆</div>
@@ -568,7 +592,7 @@ export default function UserCourses({ user }) {
               ) : (
                 <>
                   <div className="table-responsive">
-                    <table className="table table-striped table-hover">
+                    <table className="table table-striped table-hover align-middle">
                       <thead className="table-dark">
                         <tr>
                           <th>Course</th>
@@ -597,7 +621,8 @@ export default function UserCourses({ user }) {
                               </td>
                               <td>
                                 <div className="d-flex align-items-center">
-                                  <div className="progress flex-grow-1 me-2" style={{ height: '10px' }}>
+                                  {/* <div className="progress flex-grow-1 me-2" style={{ height: '10px' }}> */}
+                                  <div className="progress rounded-pill" style={{ height: '12px' }}>
                                     <div
                                       className={`progress-bar ${
                                         enrollment.progress === 100 ? 'bg-success' :
@@ -702,7 +727,8 @@ export default function UserCourses({ user }) {
 
                   {/* Summary Stats */}
                   <div className="row mt-4">
-                    <div className="col-md-2 text-center">
+                    {/* <div className="col-md-2 text-center"> */}
+                    <div className="col-6 col-md-4 col-lg-2 mb-3 text-center">
                       <div className="card bg-primary text-white">
                         <div className="card-body py-2">
                           <h5>{enrollments.length}</h5>
@@ -710,7 +736,8 @@ export default function UserCourses({ user }) {
                         </div>
                       </div>
                     </div>
-                    <div className="col-md-2 text-center">
+                    {/* <div className="col-md-2 text-center"> */}
+                    <div className="col-6 col-md-4 col-lg-2 mb-3 text-center">
                       <div className="card bg-success text-white">
                         <div className="card-body py-2">
                           <h5>{enrollments.filter(e => e.progress === 100).length}</h5>
@@ -718,7 +745,8 @@ export default function UserCourses({ user }) {
                         </div>
                       </div>
                     </div>
-                    <div className="col-md-2 text-center">
+                    {/* <div className="col-md-2 text-center"> */}
+                    <div className="col-6 col-md-4 col-lg-2 mb-3 text-center">
                       <div className="card bg-warning text-white">
                         <div className="card-body py-2">
                           <h5>{enrollments.filter(e => e.progress > 0 && e.progress < 100).length}</h5>
@@ -726,7 +754,8 @@ export default function UserCourses({ user }) {
                         </div>
                       </div>
                     </div>
-                    <div className="col-md-2 text-center">
+                    {/* <div className="col-md-2 text-center"> */}
+                    <div className="col-6 col-md-4 col-lg-2 mb-3 text-center">
                       <div className="card bg-secondary text-white">
                         <div className="card-body py-2">
                           <h5>{enrollments.filter(e => e.progress === 0).length}</h5>
@@ -734,7 +763,8 @@ export default function UserCourses({ user }) {
                         </div>
                       </div>
                     </div>
-                    <div className="col-md-2 text-center">
+                    {/* <div className="col-md-2 text-center"> */}
+                    <div className="col-6 col-md-4 col-lg-2 mb-3 text-center">
                       <div className="card bg-danger text-white">
                         <div className="card-body py-2">
                           <h5>{enrollments.filter(e => 
@@ -746,7 +776,8 @@ export default function UserCourses({ user }) {
                         </div>
                       </div>
                     </div>
-                    <div className="col-md-2 text-center">
+                    {/* <div className="col-md-2 text-center"> */}
+                    <div className="col-6 col-md-4 col-lg-2 mb-3 text-center">
                       <div className="card bg-info text-white">
                         <div className="card-body py-2">
                           <h5>{getEmployeeReminderStats(selectedEmployee).totalReminders}</h5>
