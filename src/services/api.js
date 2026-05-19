@@ -2,7 +2,7 @@
 
 // --- Base URLs ---
 const USER_BASE = process.env.REACT_APP_USER_SERVICE || 'http://localhost:8081';
-const COURSE_BASE = process.env.REACT_APP_COURSE_SERVICE || 'http://localhost:8090';
+const COURSE_BASE = process.env.REACT_APP_COURSE_SERVICE || 'http://localhost:8091';
 const MATERIAL_BASE = process.env.REACT_APP_MATERIAL_SERVICE || 'http://localhost:8082';
 const EXAM_BASE = process.env.REACT_APP_EXAM_SERVICE || 'http://localhost:8083/api/exams';
 const NOTIF_BASE = process.env.REACT_APP_NOTIFICATION_SERVICE || 'http://localhost:8089';
