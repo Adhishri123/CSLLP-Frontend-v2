@@ -281,21 +281,23 @@ export default function UserCourses({ user }) {
       </div>
 
       {/* Search Section */}
-      <div className="row mb-4">
-        <div className="col-md-6">
-          <div className="input-group">
-            <span className="input-group-text">🔍</span>
+      <div className="row mb-4 align-items-center">
+        <div className="col-md-6 mb-3 mb-md-0">
+          <div className="input-group shadow-sm rounded-full overflow-hidden" style={{transition: "0.3s ease",}}>
+            <span className="input-group-text bg-info text-white border-0">🔍</span>
             <input
               type="text"
-              className="form-control"
+              className="form-control border-0"
               placeholder="Search employees by name or email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              style={{boxShadow: "none", transition: "0.3s ease"}}
             />
           </div>
         </div>
         <div className="col-md-6">
-          <div className="form-text">
+          {/* <div className="form-text"> */}
+          <div className='d-flex flex-wrap justify-content-md-end gap-2'>
             Showing {currentEmployees.length} of {filteredEmployees.length} employees • {employees.length} total employees •
             <span className="text-warning ms-2">
               ⚠️ {pendingReminders.length} need reminders
@@ -307,8 +309,8 @@ export default function UserCourses({ user }) {
       {/* Employees List */}
       <div className="row justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
         {/* <div className="col-md-5"> */}
-        <div className="col-12 col-lg-5 mb-4">
-          <div className="card shadow-sm border-0 rounded-4 h-100">
+        <div className="col-12 col-md-10 col-lg-9 col-xl-8">
+          <div className="card shadow-sm border-0 rounded-4 h-100 border-purple-500">
             {/* <div className="card-header bg-light d-flex justify-content-between align-items-center"> */}
             <div className="card-header bg-light py-3">
               {/* <h5 className="card-title mb-0">👥 Employees</h5> */}
@@ -405,12 +407,33 @@ export default function UserCourses({ user }) {
                               </small>
                               
                               {/* Progress Stats */}
-                              <div className="mt-2">
-                                <div className="d-flex justify-content-between large">
-                                  <span>Total: {stats.total}</span>
-                                  <span className="text-success">Completed: {stats.completed}</span>
+                              {/* <div className="mt-2">
+                                <div className="d-flex justify-content-between flex-wrap gap-2 small fw-semibold">
+                                  <span className="text-black">Total: {stats.total}</span>
+                                  <span className="text-success-emphasis">Completed: {stats.completed}</span>
                                   <span className="text-warning">In Progress: {stats.inProgress}</span>
-                                  <span className="text-secondary">Not Started: {stats.notStarted}</span>
+                                  <span className="text-info">Not Started: {stats.notStarted}</span>
+                                </div>
+                              </div> */}
+                              <div className="mt-2  p-2 rounded">
+                                <div className="d-flex justify-content-between flex-wrap gap-2 small fw-semibold">
+
+                                  <span className="text-danger">
+                                    Total: {stats.total}
+                                  </span>
+
+                                  <span style={{ color: "#7CFC00" }}>
+                                    Completed: {stats.completed}
+                                  </span>
+
+                                  <span style={{ color: "#FFD700" }}>
+                                    In Progress: {stats.inProgress}
+                                  </span>
+
+                                  <span style={{ color: "#FFB6C1" }}>
+                                    Not Started: {stats.notStarted}
+                                  </span>
+
                                 </div>
                               </div>
 
@@ -431,7 +454,7 @@ export default function UserCourses({ user }) {
                           {/* Progress Bar */}
                           <div className="mt-2">
                             {/* <div className="progress" style={{ height: '8px' }}> */}
-                            <div className="progress rounded-pill" style={{ height: '12px' }}>
+                            <div className="progress rounded-full" style={{ height: '12px' }}>
                               <div
                                 className="progress-bar bg-success"
                                 style={{ width: `${stats.total > 0 ? (stats.completed / stats.total) * 100 : 0}%` }}
@@ -511,8 +534,8 @@ export default function UserCourses({ user }) {
 
         {/* Selected Employee Details */}
         {/* <div className="col-md-7"> */}
-        <div className="col-12 col-lg-7">
-          <div className="card shadow-sm border-0 rounded-4 h-100 ">
+        <div className="col-12 col-md-10 col-lg-9 col-xl-8">
+          <div className="card shadow-sm border-0 rounded-4 h-100 border-purple-500">
             <div className="card-header bg-light d-flex ">
               {/* <h5 className="card-title mb-0">
                 {selectedEmployee ? `📚 Course Progress for ${employees.find(e => e.id === selectedEmployee)?.firstName} ${employees.find(e => e.id === selectedEmployee)?.lastName}` : 'Select an employee'}
@@ -593,7 +616,7 @@ export default function UserCourses({ user }) {
                 <>
                   <div className="table-responsive">
                     <table className="table table-striped table-hover align-middle">
-                      <thead className="table-dark">
+                      <thead className="table-warning">
                         <tr>
                           <th>Course</th>
                           <th>Progress</th>
@@ -726,48 +749,43 @@ export default function UserCourses({ user }) {
                   )}
 
                   {/* Summary Stats */}
-                  <div className="row mt-4">
-                    {/* <div className="col-md-2 text-center"> */}
-                    <div className="col-6 col-md-4 col-lg-2 mb-3 text-center">
-                      <div className="card bg-primary text-white">
-                        <div className="card-body py-2">
-                          <h5>{enrollments.length}</h5>
+                  <div className="row row-cols-2 row-cols-sm-3 row-cols-md-6 mt-4 g-2 text-center">
+                    <div className="col text-center">
+                      <div className="card bg-primary text-white shadow-sm h-100">
+                        <div className="card-body py-3 px-2">
+                          <h5 className='fw-bold mb-1'>{enrollments.length}</h5>
                           <small>Total</small>
                         </div>
                       </div>
                     </div>
-                    {/* <div className="col-md-2 text-center"> */}
-                    <div className="col-6 col-md-4 col-lg-2 mb-3 text-center">
-                      <div className="card bg-success text-white">
-                        <div className="card-body py-2">
-                          <h5>{enrollments.filter(e => e.progress === 100).length}</h5>
+                    <div className="col text-center">
+                      <div className="card bg-success text-white shadow-sm h-100">
+                        <div className="card-body py-3 px-2">
+                          <h5 className='fw-bold mb-1'>{enrollments.filter(e => e.progress === 100).length}</h5>
                           <small>Completed</small>
                         </div>
                       </div>
                     </div>
-                    {/* <div className="col-md-2 text-center"> */}
-                    <div className="col-6 col-md-4 col-lg-2 mb-3 text-center">
-                      <div className="card bg-warning text-white">
-                        <div className="card-body py-2">
-                          <h5>{enrollments.filter(e => e.progress > 0 && e.progress < 100).length}</h5>
+                    <div className="col text-center">
+                      <div className="card bg-warning text-white shadow-sm h-100">
+                        <div className="card-body py-3 px-2">
+                          <h5 className='fw-bold mb-1'>{enrollments.filter(e => e.progress > 0 && e.progress < 100).length}</h5>
                           <small>In Progress</small>
                         </div>
                       </div>
                     </div>
-                    {/* <div className="col-md-2 text-center"> */}
-                    <div className="col-6 col-md-4 col-lg-2 mb-3 text-center">
-                      <div className="card bg-secondary text-white">
-                        <div className="card-body py-2">
-                          <h5>{enrollments.filter(e => e.progress === 0).length}</h5>
+                    <div className="col text-center">
+                      <div className="card bg-secondary text-white shadow-sm h-100">
+                        <div className="card-body py-3 px-2">
+                          <h5 className='fw-bold mb-1'>{enrollments.filter(e => e.progress === 0).length}</h5>
                           <small>Not Started</small>
                         </div>
                       </div>
                     </div>
-                    {/* <div className="col-md-2 text-center"> */}
-                    <div className="col-6 col-md-4 col-lg-2 mb-3 text-center">
-                      <div className="card bg-danger text-white">
-                        <div className="card-body py-2">
-                          <h5>{enrollments.filter(e => 
+                    <div className="col text-center">
+                      <div className="card bg-danger text-white shadow-sm h-100">
+                        <div className="card-body py-3 px-2">
+                          <h5 className='fw-bold mb-1'>{enrollments.filter(e => 
                             e.enrolledAt && 
                             Math.floor((new Date() - new Date(e.enrolledAt)) / (1000 * 60 * 60 * 24)) > 15 &&
                             e.progress < 50
@@ -776,11 +794,10 @@ export default function UserCourses({ user }) {
                         </div>
                       </div>
                     </div>
-                    {/* <div className="col-md-2 text-center"> */}
-                    <div className="col-6 col-md-4 col-lg-2 mb-3 text-center">
-                      <div className="card bg-info text-white">
-                        <div className="card-body py-2">
-                          <h5>{getEmployeeReminderStats(selectedEmployee).totalReminders}</h5>
+                    <div className="col text-center">
+                      <div className="card bg-info text-white shadow-sm h-100">
+                        <div className="card-body py-3 px-2">
+                          <h5 className='fw-bold mb-1'>{getEmployeeReminderStats(selectedEmployee).totalReminders}</h5>
                           <small>Need Reminder</small>
                         </div>
                       </div>
