@@ -1,4 +1,4 @@
-// src/components/StudyMaterials.jsx
+//src/components/searchMaterials.jsx
 import React, { useEffect, useState, useRef } from "react";
 import {
   getMaterials,
@@ -10,8 +10,11 @@ import {
   hasUploadPermission,
   canEditMaterials,
   canDeleteMaterials,
-  getAllCourses
-} from "../services/api";
+  getAllCourses,
+  searchMaterials
+  // uploadMaterials
+} 
+from "../services/api";
 import MessagePopup from "./MessagePopup";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./StudyMaterials.css";
@@ -131,6 +134,8 @@ export default function StudyMaterials() {
   const [selectedDocument, setSelectedDocument] = useState(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [message, setMessage] = useState({ text: "", type: "" });
+
+  
 
   // 🆕 ADDED: Popup State
   const [popup, setPopup] = useState({
@@ -614,6 +619,19 @@ export default function StudyMaterials() {
   }
 
   // filters
+  // const filtered = materials.filter((m) => {
+  //   const matchSearch =
+  //     !search ||
+  //     (m.title && m.title.toLowerCase().includes(search.toLowerCase())) ||
+  //     (m.tags && m.tags.toLowerCase().includes(search.toLowerCase()));
+  //   const matchType =
+  //     filterType === "ALL" || getMaterialType(m) === filterType;
+  //   const matchCategory =
+  //     filterCategory === "ALL" ||
+  //     (m.category || "") === filterCategory;
+  //   return matchSearch && matchType && matchCategory;
+  // });
+
   const filtered = materials.filter((m) => {
     const matchSearch =
       !search ||
@@ -623,7 +641,11 @@ export default function StudyMaterials() {
       filterType === "ALL" || getMaterialType(m) === filterType;
     const matchCategory =
       filterCategory === "ALL" ||
-      (m.category || "") === filterCategory;
+      (m.tags &&
+        m.tags
+          .split(",")
+          .map((t) => t.trim().toLowerCase())
+          .includes(filterCategory.toLowerCase()));
     return matchSearch && matchType && matchCategory;
   });
 
