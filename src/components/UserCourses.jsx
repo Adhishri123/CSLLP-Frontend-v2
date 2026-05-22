@@ -132,15 +132,53 @@ export default function UserCourses({ user }) {
     emp.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const getEmployeeStats = (employeeId) => {
-    const employeeEnrollments = enrollments.filter(e => e.employeeId === employeeId);
-    const total = employeeEnrollments.length;
-    const completed = employeeEnrollments.filter(e => e.progress === 100 && e.status === 'COMPLETED').length;
-    const inProgress = employeeEnrollments.filter(e => e.progress > 0 && e.progress < 100).length;
-    const notStarted = employeeEnrollments.filter(e => e.progress === 0).length;
+  // const getEmployeeStats = (employeeId) => {
+  //   const employeeEnrollments = enrollments.filter(e => e.employeeId === employeeId);
+  //   const total = employeeEnrollments.length;
+  //   const completed = employeeEnrollments.filter(e => e.progress >= 100 && e.status === 'COMPLETED').length;
+  //   const inProgress = employeeEnrollments.filter(e => e.progress > 0 && e.progress < 100).length;
+  //   const notStarted = employeeEnrollments.filter(e => e.progress === 0).length;
     
-    return { total, completed, inProgress, notStarted };
+  //   return { total, completed, inProgress, notStarted };
+  // };
+  const getEmployeeStats = (employeeId) => {
+  const employeeEnrollments = enrollments.filter(
+    e => e.employeeId === employeeId
+  );
+
+  const total = employeeEnrollments.length;
+
+  const completed = employeeEnrollments.filter(
+    e => e.progress >= 100
+  ).length;
+
+  const inProgress = employeeEnrollments.filter(
+    e => e.progress > 0 && e.progress < 100
+  ).length;
+
+  const notStarted = employeeEnrollments.filter(
+    e => e.progress === 0
+  ).length;
+
+  // NEW: Average overall progress
+  const overallProgress =
+    total > 0
+      ? Math.round(
+          employeeEnrollments.reduce(
+            (sum, e) => sum + (e.progress || 0),
+            0
+          ) / total
+        )
+      : 0;
+
+  return {
+    total,
+    completed,
+    inProgress,
+    notStarted,
+    overallProgress
   };
+};
 
   // 🆕 NEW: Get reminder stats for employee
   const getEmployeeReminderStats = (employeeId) => {
@@ -457,17 +495,17 @@ export default function UserCourses({ user }) {
                             <div className="progress rounded-full" style={{ height: '12px' }}>
                               <div
                                 className="progress-bar bg-success"
-                                style={{ width: `${stats.total > 0 ? (stats.completed / stats.total) * 100 : 0}%` }}
+                                style={{ width: `${stats.overallProgress}%` }}
                                 title={`${stats.completed} completed`}
                               ></div>
                               <div
                                 className="progress-bar bg-warning"
-                                style={{ width: `${stats.total > 0 ? (stats.inProgress / stats.total) * 100 : 0}%` }}
+                                style={{ width: `${stats.overallProgress}%` }}
                                 title={`${stats.inProgress} in progress`}
                               ></div>
                             </div>
                             <small className={selectedEmployee === employee.id ? 'text-light' : 'text-muted'}>
-                              Overall Progress: {stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0}%
+                              Overall Progress: {stats.overallProgress}%
                             </small>
                           </div>
                         </div>
