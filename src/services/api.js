@@ -1,4 +1,4 @@
-// src/services/api.js - COMPLETE CLEAN VERSION
+// src/services/api.js - COMPLETE WORKING VERSION
 // ============================================================================
 // BASE URLs
 // ============================================================================
@@ -85,6 +85,14 @@ export function clearUser() {
 // ROLE & PERMISSION HELPERS
 // ============================================================================
 export function hasUploadPermission(user) {
+  return user?.role && ['ADMIN', 'MANAGER', 'HR'].includes(user.role.toUpperCase());
+}
+
+export function canEditMaterials(user) {
+  return user?.role && ['ADMIN', 'MANAGER', 'HR'].includes(user.role.toUpperCase());
+}
+
+export function canDeleteMaterials(user) {
   return user?.role && ['ADMIN', 'MANAGER', 'HR'].includes(user.role.toUpperCase());
 }
 
@@ -234,6 +242,15 @@ export async function checkUserExists(userId) {
   return parseJson(res);
 }
 
+export async function getManagerTeamEmployees(managerId) {
+  try {
+    const res = await fetch(`${USER_BASE}/api/users/manager/${managerId}/team`);
+    return await parseJson(res);
+  } catch (error) {
+    return { ok: false, body: null, data: [], success: false, message: 'Failed to fetch team' };
+  }
+}
+
 // ============================================================================
 // COURSE SERVICE
 // ============================================================================
@@ -298,6 +315,27 @@ export async function deleteCourse(id) {
 
 export async function getMyAvailableCourses(userId) {
   return parseJson(await fetch(`${COURSE_BASE}/courses/available/${userId}`));
+}
+
+export async function getCourseReport() {
+  try {
+    const res = await fetch(`${COURSE_BASE}/courses/reports/summary`);
+    return await parseJson(res);
+  } catch (error) {
+    return { ok: false, body: null, data: {}, success: false, message: 'Failed to generate report' };
+  }
+}
+
+export async function getCourseMaterials(courseId) {
+  try {
+    if (!courseId || courseId === 'undefined') {
+      return { ok: false, body: null, data: [], success: false, message: 'Invalid course ID' };
+    }
+    const res = await fetch(`${COURSE_BASE}/courses/${courseId}/materials`);
+    return await parseJson(res);
+  } catch (error) {
+    return { ok: false, body: null, data: [], success: false, message: 'Failed to fetch course materials' };
+  }
 }
 
 // ============================================================================
@@ -599,6 +637,80 @@ export async function getAllFeedbacks() {
   }
 }
 
+export async function getReceivedFeedbacks(employeeId) {
+  try {
+    const res = await fetch(`${FEEDBACK_BASE}/api/feedback/received?employeeId=${employeeId}`);
+    return await parseJson(res);
+  } catch (error) {
+    return { ok: false, body: null, data: [], success: false, message: 'Failed to fetch received feedbacks' };
+  }
+}
+
+export async function getGivenFeedbacks(givenBy) {
+  try {
+    const res = await fetch(`${FEEDBACK_BASE}/api/feedback/given?givenBy=${givenBy}`);
+    return await parseJson(res);
+  } catch (error) {
+    return { ok: false, body: null, data: [], success: false, message: 'Failed to fetch given feedbacks' };
+  }
+}
+
+export async function getTeamFeedbackSummary(managerId) {
+  try {
+    const res = await fetch(`${FEEDBACK_BASE}/api/feedback/team/${managerId}`);
+    return await parseJson(res);
+  } catch (error) {
+    return { ok: false, body: null, data: null, success: false, message: 'Failed to fetch team summary' };
+  }
+}
+
+export async function getFeedbacksForTarget(targetType, targetId) {
+  try {
+    const res = await fetch(`${FEEDBACK_BASE}/api/feedback/${targetType}/${targetId}`);
+    return await parseJson(res);
+  } catch (error) {
+    return { ok: false, body: null, data: [], success: false, message: 'Failed to fetch feedbacks' };
+  }
+}
+
+export async function getAverageRating(targetType, targetId) {
+  try {
+    const res = await fetch(`${FEEDBACK_BASE}/api/feedback/average/${targetType}/${targetId}`);
+    return await parseJson(res);
+  } catch (error) {
+    return { ok: false, body: null, data: 0, success: false, message: 'Failed to fetch average rating' };
+  }
+}
+
+export async function getAdminStats() {
+  try {
+    const res = await fetch(`${FEEDBACK_BASE}/api/feedback/admin/stats`);
+    return await parseJson(res);
+  } catch (error) {
+    return { ok: false, body: null, data: null, success: false, message: 'Failed to fetch admin stats' };
+  }
+}
+
+export async function flagFeedback(feedbackId) {
+  try {
+    const res = await fetch(`${FEEDBACK_BASE}/api/feedback/${feedbackId}/flag`, {
+      method: 'PUT'
+    });
+    return await parseJson(res);
+  } catch (error) {
+    return { ok: false, body: null, data: null, success: false, message: 'Failed to flag feedback' };
+  }
+}
+
+export async function getExamsForFeedback() {
+  try {
+    const res = await fetch(`${EXAM_BASE}`);
+    return await parseJson(res);
+  } catch (error) {
+    return { ok: false, body: null, data: [], success: false, message: 'Failed to fetch exams' };
+  }
+}
+
 // ============================================================================
 // EXAM SERVICE
 // ============================================================================
@@ -617,6 +729,153 @@ export async function getExamsForEmployee(employeeId) {
     return await parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: [], success: false, message: 'Failed to fetch employee exams' };
+  }
+}
+
+export async function getExamById(id) {
+  try {
+    const res = await fetch(`${EXAM_BASE}/${id}`);
+    return await parseJson(res);
+  } catch (error) {
+    return { ok: false, body: null, data: null, success: false, message: 'Failed to fetch exam' };
+  }
+}
+
+export async function getQuestions(examId) {
+  try {
+    const res = await fetch(`${EXAM_BASE}/${examId}/questions`);
+    return await parseJson(res);
+  } catch (error) {
+    return { ok: false, body: null, data: [], success: false, message: 'Failed to fetch questions' };
+  }
+}
+
+export async function createExam(payload) {
+  try {
+    const res = await fetch(`${EXAM_BASE}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    return await parseJson(res);
+  } catch (error) {
+    return { ok: false, body: null, data: null, success: false, message: 'Failed to create exam' };
+  }
+}
+
+export async function addQuestion(examId, payload) {
+  try {
+    const res = await fetch(`${EXAM_BASE}/${examId}/questions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    return await parseJson(res);
+  } catch (error) {
+    return { ok: false, body: null, data: null, success: false, message: 'Failed to add question' };
+  }
+}
+
+export async function deleteExam(id) {
+  try {
+    const res = await fetch(`${EXAM_BASE}/${id}`, { method: 'DELETE' });
+    return await parseJson(res);
+  } catch (error) {
+    return { ok: false, body: null, data: null, success: false, message: 'Failed to delete exam' };
+  }
+}
+
+export async function updateExam(id, payload) {
+  try {
+    const res = await fetch(`${EXAM_BASE}/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    return await parseJson(res);
+  } catch (error) {
+    return { ok: false, body: null, data: null, success: false, message: 'Failed to update exam' };
+  }
+}
+
+export async function checkExamEligibility(examId, employeeId) {
+  try {
+    const res = await fetch(`${EXAM_BASE}/${examId}/eligibility/${employeeId}`);
+    return await parseJson(res);
+  } catch (error) {
+    return { ok: false, body: null, data: { isEligible: false }, success: false, message: 'Failed to check eligibility' };
+  }
+}
+
+export async function startAttempt(examId, employeeId) {
+  try {
+    const res = await fetch(`${EXAM_BASE}/${examId}/start?employeeId=${employeeId}`, {
+      method: 'POST',
+    });
+    return await parseJson(res);
+  } catch (error) {
+    return { ok: false, body: null, data: null, success: false, message: 'Failed to start attempt' };
+  }
+}
+
+export async function submitAttempt(examId, payload) {
+  try {
+    const res = await fetch(`${EXAM_BASE}/${examId}/submit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    return await parseJson(res);
+  } catch (error) {
+    return { ok: false, body: null, data: null, success: false, message: 'Failed to submit attempt' };
+  }
+}
+
+export async function getEmployeeResults(employeeId) {
+  try {
+    const res = await fetch(`${EXAM_BASE}/results/employee/${employeeId}`);
+    return await parseJson(res);
+  } catch (error) {
+    return { ok: false, body: null, data: [], success: false, message: 'Failed to fetch results' };
+  }
+}
+
+export async function getAllResults() {
+  try {
+    const res = await fetch(`${EXAM_BASE}/results`);
+    return await parseJson(res);
+  } catch (error) {
+    return { ok: false, body: null, data: [], success: false, message: 'Failed to fetch results' };
+  }
+}
+
+export async function getAnalytics(filters = {}) {
+  try {
+    let url = `http://localhost:8086/api/analytics`;
+    if (filters.employeeId) url = `${url}/employee/${filters.employeeId}`;
+    else if (filters.examId) url = `${url}/exam/${filters.examId}`;
+    const res = await fetch(url);
+    return await parseJson(res);
+  } catch (error) {
+    return { ok: false, body: null, data: [], success: false, message: 'Failed to fetch analytics' };
+  }
+}
+
+export async function getTotalEmployeesCount() {
+  try {
+    const res = await fetch(`${EXAM_BASE}/employees/count`);
+    return await parseJson(res);
+  } catch (error) {
+    return { ok: false, body: null, data: 0, success: false, message: 'Failed to fetch count' };
+  }
+}
+
+export async function getPendingExamsCount(employeeId) {
+  try {
+    const res = await fetch(`${EXAM_BASE}/pending-count/${employeeId}`);
+    return await parseJson(res);
+  } catch (error) {
+    return { ok: false, body: null, data: 0, success: false, message: 'Failed to fetch pending exams count' };
   }
 }
 
