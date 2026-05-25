@@ -88,7 +88,7 @@ export default function UserCourses({ user }) {
 
   // 🆕 NEW: Trigger automatic reminders
   const triggerAutomaticReminders = async () => {
-    if (window.confirm('Send automatic reminders to all employees with low progress after 15 days?')) {
+    if (window.confirm('Send automatic reminders to all employees with low progress after 8 days?')) {
       setSendingReminders(true);
       try {
         const response = await fetch('http://localhost:8088/courses/admin/reminders/send-automatic', {
@@ -270,7 +270,7 @@ export default function UserCourses({ user }) {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
           <h2 className="mb-1 fw-bold">📈 User Courses & Progress</h2>
-          <small className="text-muted">
+          <small className="text-muted fs-5 fw-semibold">
             Monitor employee learning progress with automatic reminders
           </small>
         </div>
@@ -320,7 +320,8 @@ export default function UserCourses({ user }) {
 
       {/* Search Section */}
       <div className="row mb-4 align-items-center">
-        <div className="col-md-6 mb-3 mb-md-0">
+        {/* <div className="col-md-6 mb-3 mb-md-0"> */}
+          <div className='col-18 col-md-18 col-lg-18 col-xl-18'>
           <div className="input-group shadow-sm rounded-full overflow-hidden" style={{transition: "0.3s ease",}}>
             <span className="input-group-text bg-info text-white border-0">🔍</span>
             <input
@@ -335,7 +336,8 @@ export default function UserCourses({ user }) {
         </div>
         <div className="col-md-6">
           {/* <div className="form-text"> */}
-          <div className='d-flex flex-wrap justify-content-md-end gap-2'>
+          {/* <div className='d-flex flex-wrap justify-content-md-end gap-2'> */}
+          <div className='d-flex flex-wrap justify-content-start gap-2'>
             Showing {currentEmployees.length} of {filteredEmployees.length} employees • {employees.length} total employees •
             <span className="text-warning ms-2">
               ⚠️ {pendingReminders.length} need reminders
@@ -347,7 +349,7 @@ export default function UserCourses({ user }) {
       {/* Employees List */}
       <div className="row justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
         {/* <div className="col-md-5"> */}
-        <div className="col-12 col-md-10 col-lg-9 col-xl-8">
+        <div className="col-18 col-md-18 col-lg-18 col-xl-18">
           <div className="card shadow-sm border-0 rounded-4 h-100 border-purple-500">
             {/* <div className="card-header bg-light d-flex justify-content-between align-items-center"> */}
             <div className="card-header bg-light py-3">
@@ -430,7 +432,7 @@ export default function UserCourses({ user }) {
                           style={{ cursor: 'pointer' }}
                           onClick={() => loadEmployeeEnrollments(employee.id)}
                         >
-                          <div className="d-flex justify-content-between align-items-start">
+                          <div className="d-flex justify-content-between align-items-start fs-5">
                             <div className="flex-grow-1">
                               <div className="d-flex align-items-center">
                                 <h6 className="mb-1">{employee.firstName} {employee.lastName}</h6>
@@ -477,9 +479,9 @@ export default function UserCourses({ user }) {
 
                               {/* 🆕 NEW: Reminder Details */}
                               {needsReminder && (
-                                <div className="mt-2 p-2 bg-warning bg-opacity-10 rounded">
-                                  <small className="text-warning">
-                                    <strong>Needs Reminder:</strong> {reminderStats.notStarted} not started, {reminderStats.lowProgress} low progress
+                                <div className="mt-2 p-2 bg-opacity-10 rounded">
+                                  <small className="text-black">
+                                    <strong>Needs Reminder : </strong> {reminderStats.notStarted} not started, {reminderStats.lowProgress} low progress
                                   </small>
                                 </div>
                               )}
@@ -490,7 +492,7 @@ export default function UserCourses({ user }) {
                           </div>
                           
                           {/* Progress Bar */}
-                          <div className="mt-2">
+                          <div className="mt-2 fw-bold">
                             {/* <div className="progress" style={{ height: '8px' }}> */}
                             <div className="progress rounded-full" style={{ height: '12px' }}>
                               <div
@@ -572,9 +574,9 @@ export default function UserCourses({ user }) {
 
         {/* Selected Employee Details */}
         {/* <div className="col-md-7"> */}
-        <div className="col-12 col-md-10 col-lg-9 col-xl-8">
+        <div className="col-18 col-md-18 col-lg-18 col-xl-18">
           <div className="card shadow-sm border-0 rounded-4 h-100 border-purple-500">
-            <div className="card-header bg-light d-flex ">
+            <div className="card-header bg-light d-flex justify-content-between align-items-center">
               {/* <h5 className="card-title mb-0">
                 {selectedEmployee ? `📚 Course Progress for ${employees.find(e => e.id === selectedEmployee)?.firstName} ${employees.find(e => e.id === selectedEmployee)?.lastName}` : 'Select an employee'}
               </h5> */}
@@ -587,13 +589,13 @@ export default function UserCourses({ user }) {
                     }`
                   : '📚 Select an Employee'}
               </h4>
-              <div className="d-flex align-items-center gap-2">
+              <div className="d-flex align-items-center gap-4">
                 {selectedEmployee && enrollments.length > 0 && (
                   <>
                     {/* Custom Dropdown for enrollments per page */}
                     <div className="enrollment-dropdown-container position-relative">
                       <button 
-                        className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1"
+                        className="btn btn-outline-secondary btn-sm d-flex align-items-center"
                         onClick={() => setShowEnrollmentDropdown(!showEnrollmentDropdown)}
                       >
                         <span>Show: {enrollmentsPerPage}</span>
@@ -711,8 +713,14 @@ export default function UserCourses({ user }) {
                               </td>
                               <td>
                                 {enrollment.enrolledAt ? (
+                                  // <span className={`badge ${
+                                  //   Math.floor((new Date() - new Date(enrollment.enrolledAt)) / (1000 * 60 * 60 * 24)) > 15 ? 'bg-danger' : 'bg-info'
+                                  // }`}>
                                   <span className={`badge ${
-                                    Math.floor((new Date() - new Date(enrollment.enrolledAt)) / (1000 * 60 * 60 * 24)) > 15 ? 'bg-danger' : 'bg-info'
+                                    new Date(enrollment.dueDate) < new Date() &&
+                                    enrollment.progress < 100
+                                      ? 'bg-danger'
+                                      : 'bg-info'
                                   }`}>
                                     {Math.floor((new Date() - new Date(enrollment.enrolledAt)) / (1000 * 60 * 60 * 24))} days
                                   </span>
@@ -823,10 +831,15 @@ export default function UserCourses({ user }) {
                     <div className="col text-center">
                       <div className="card bg-danger text-white shadow-sm h-100">
                         <div className="card-body py-3 px-2">
-                          <h5 className='fw-bold mb-1'>{enrollments.filter(e => 
+                          {/* <h5 className='fw-bold mb-1'>{enrollments.filter(e => 
                             e.enrolledAt && 
                             Math.floor((new Date() - new Date(e.enrolledAt)) / (1000 * 60 * 60 * 24)) > 15 &&
                             e.progress < 50
+                          ).length}</h5> */}
+                          <h5 className='fw-bold mb-1'>{enrollments.filter(e =>
+                            e.dueDate &&
+                            new Date(e.dueDate) < new Date() &&
+                            e.progress < 100
                           ).length}</h5>
                           <small>Overdue</small>
                         </div>

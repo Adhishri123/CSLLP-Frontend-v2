@@ -1,5 +1,13 @@
 /* src/styles.css */
 
+/*  DROPDOWN-ITEM STYLING */
+.dropdown-item:hover {
+  background-color: #6c757d !important;
+  color: #fff !important;
+  border-radius: 6px;
+  transform: translateX(2px);
+  transition: all 0.2s ease;
+}
 /* ===================== */
 /* RESET & BASE STYLES */
 /* ===================== */
