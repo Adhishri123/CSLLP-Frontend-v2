@@ -347,7 +347,7 @@ export default function UserCourses({ user }) {
       {/* Employees List */}
       <div className="row justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
         {/* <div className="col-md-5"> */}
-        <div className="col-12 col-md-10 col-lg-9 col-xl-8">
+        <div className="col-18 col-md-18 col-lg-18 col-xl-18">
           <div className="card shadow-sm border-0 rounded-4 h-100 border-purple-500">
             {/* <div className="card-header bg-light d-flex justify-content-between align-items-center"> */}
             <div className="card-header bg-light py-3">
@@ -572,7 +572,7 @@ export default function UserCourses({ user }) {
 
         {/* Selected Employee Details */}
         {/* <div className="col-md-7"> */}
-        <div className="col-12 col-md-10 col-lg-9 col-xl-8">
+        <div className="col-18 col-md-18 col-lg-18 col-xl-18">
           <div className="card shadow-sm border-0 rounded-4 h-100 border-purple-500">
             <div className="card-header bg-light d-flex ">
               {/* <h5 className="card-title mb-0">

@@ -172,25 +172,27 @@ export default function CourseManagement({ user }) {
         onConfirm={popup.onConfirm}
       />
 
-      {/* HEADER WITH REFRESH BUTTON ON RIGHT SIDE */}
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h2 className="mb-1 fw-bold">⚙️ Course Management</h2>
-          <small className="text-muted">
-            Manage courses and assignments
-          </small>
-        </div>
-        <div className="d-flex gap-2 align-items-center">
-          <span className="me-3">Welcome, {user.name}</span>
-          <button 
-            className="btn btn-outline-primary btn-sm"
-            onClick={handleRefresh}
-            title="Refresh data"
-          >
-            🔄 Refresh
-          </button>
-        </div>
+     <div className="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <div className="d-flex align-items-center gap-2 mb-1">
+      <span style={{ fontSize: "1.5rem", lineHeight: 1 }}>⚙️</span>
+      <div>
+        <h2 className="mb-0 fw-bold">Course Management</h2>
+        <small className="text-muted">Manage courses and assignments</small>
       </div>
+    </div>
+  </div>
+  <div className="d-flex gap-2 align-items-center">
+    <span className="me-3">Welcome, {user.name}</span>
+    <button
+      className="btn btn-outline-primary btn-sm"
+      onClick={handleRefresh}
+      title="Refresh data"
+    >
+      🔄 Refresh
+    </button>
+  </div>
+</div>
 
       <ul className="nav nav-tabs">
         <li className="nav-item">
@@ -1313,90 +1315,81 @@ function CourseCatalogTab({ user, showSuccess, showError, showConfirm }) {
   </div>
 </div>
 
-      <div className="table-responsive">
-        <table className="table table-striped table-hover">
-          <thead className="table-dark">
-            <tr>
-              <th>ID</th>
-              <th>Title</th>
-              <th>Category</th>
-              <th>Duration</th>
-              <th>Type</th>
-              <th>Assignment</th>
-              <th>Materials</th>
-              <th>Status</th>
-              <th>Created By</th>
-              <th>Created Date</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentCourses.map(course => (
-              <tr key={course.id}>
-                <td>#{course.id}</td>
-                <td>
-                  <strong>{course.title}</strong>
-                  <br />
-                  <small className="text-muted">{course.description}</small>
-                </td>
-                <td>{course.category}</td>
-                <td>{course.durationHours}h</td>
-                <td>
-                  <span className={`badge ${course.paid || course.isPaid ? 'bg-warning' : 'bg-success'}`}>
-                    {course.paid || course.isPaid ? `Paid - $${course.price}` : 'Free'}
-                  </span>
-                </td>
-                <td>
-                  <span className={`badge ${course.isMandatory ? 'bg-warning' : 'bg-info'}`}>
-                    {course.isMandatory ? 'Mandatory' : 'Optional'}
-                  </span>
-                </td>
-                <td>
-                  <span className="badge bg-info">
-                    {course.materials ? course.materials.length : 0} 📎
-                  </span>
-                </td>
-                <td>
-                  <span className={`badge ${course.status === 'ACTIVE' ? 'bg-success' : 'bg-danger'}`}>
-                    {course.status || 'ACTIVE'}
-                  </span>
-                </td>
-                <td>#{course.createdBy}</td>
-                <td>
-                  {course.createdAt ? new Date(course.createdAt).toLocaleDateString() : 'N/A'}
-                </td>
-                <td>
-                  <div className="btn-group">
-                    <button 
-                      className="btn btn-outline-warning btn-sm"
-                      onClick={() => startEdit(course)}
-                      title="Edit course"
-                    >
-                      ✏️
-                    </button>
-                    <button 
-                      className={`btn btn-sm ${course.status === 'ACTIVE' ? 'btn-success' : 'btn-danger'}`}
-                      onClick={() => handleStatusToggle(course)}
-                      style={{
-                        minWidth: '80px',
-                        fontWeight: 'bold'
-                      }}
-                    >
-                      {course.status === 'ACTIVE' ? '✓ Active' : '✗ Inactive'}
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        
-        {currentCourses.length === 0 && (
-          <div className="text-center py-4">
-            <p className="text-muted">No courses found</p>
-          </div>
-        )}
-      </div>
+     <div className="table-responsive">
+  <table className="table table-striped table-hover" style={{ tableLayout: 'fixed', minWidth: '900px' }}>
+    <thead className="table-dark">
+      <tr>
+        <th style={{ width: '50px', whiteSpace: 'nowrap' }}>ID</th>
+        <th style={{ width: '220px' }}>Title</th>
+        <th style={{ width: '100px', whiteSpace: 'nowrap' }}>Category</th>
+        <th style={{ width: '80px', whiteSpace: 'nowrap' }}>Duration</th>
+        <th style={{ width: '90px', whiteSpace: 'nowrap' }}>Type</th>
+        <th style={{ width: '110px', whiteSpace: 'nowrap' }}>Assignment</th>
+        <th style={{ width: '90px', whiteSpace: 'nowrap' }}>Materials</th>
+        <th style={{ width: '90px', whiteSpace: 'nowrap' }}>Status</th>
+        <th style={{ width: '80px', whiteSpace: 'nowrap' }}>Created By</th>
+        <th style={{ width: '100px', whiteSpace: 'nowrap' }}>Created Date</th>
+        <th style={{ width: '130px', whiteSpace: 'nowrap' }}>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {currentCourses.map(course => (
+        <tr key={course.id}>
+          <td style={{ whiteSpace: 'nowrap' }}>#{course.id}</td>
+          <td>
+            <strong>{course.title}</strong>
+            <br />
+            <small className="text-muted">{course.description}</small>
+          </td>
+          <td style={{ whiteSpace: 'nowrap' }}>{course.category}</td>
+          <td style={{ whiteSpace: 'nowrap' }}>{course.durationHours}h</td>
+          <td>
+            <span className={`badge ${course.paid || course.isPaid ? 'bg-warning' : 'bg-success'}`}>
+              {course.paid || course.isPaid ? `Paid` : 'Free'}
+            </span>
+          </td>
+          <td>
+            <span className={`badge ${course.isMandatory ? 'bg-warning' : 'bg-info'}`}>
+              {course.isMandatory ? 'Mandatory' : 'Optional'}
+            </span>
+          </td>
+          <td style={{ whiteSpace: 'nowrap' }}>
+            <span className="badge bg-info">
+              {course.materials ? course.materials.length : 0} 📎
+            </span>
+          </td>
+          <td>
+            <span className={`badge ${course.status === 'ACTIVE' ? 'bg-success' : 'bg-danger'}`}>
+              {course.status || 'ACTIVE'}
+            </span>
+          </td>
+          <td style={{ whiteSpace: 'nowrap' }}>#{course.createdBy}</td>
+          <td style={{ whiteSpace: 'nowrap' }}>
+            {course.createdAt ? new Date(course.createdAt).toLocaleDateString() : 'N/A'}
+          </td>
+          <td>
+            <div className="btn-group">
+              <button
+                className="btn btn-outline-warning btn-sm"
+                onClick={() => startEdit(course)}
+                title="Edit course"
+              >
+                ✏️
+              </button>
+              <button
+                className={`btn btn-sm ${course.status === 'ACTIVE' ? 'btn-success' : 'btn-danger'}`}
+                onClick={() => handleStatusToggle(course)}
+                style={{ minWidth: '75px', fontWeight: 'bold' }}
+              >
+                {course.status === 'ACTIVE' ? '✓ Active' : '✗ Inactive'}
+              </button>
+            </div>
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
 
       {totalItems > 0 && <PaginationControls />}
     </div>
