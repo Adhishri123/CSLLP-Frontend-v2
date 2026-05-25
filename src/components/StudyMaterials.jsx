@@ -166,12 +166,21 @@ export default function StudyMaterials() {
 
   // filters/search
   const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("name-asc");
   const [filterType, setFilterType] = useState("ALL");
   const [filterCategory, setFilterCategory] = useState("ALL");
 
   const user = loadUserFromStorage();
   const iframeRef = useRef(null);
   const videoRef = useRef(null);
+
+  const getFileName = (fileUrl) => {
+  if (!fileUrl) return "";
+
+  const fullName = fileUrl.split("/").pop();
+
+  return fullName.substring(fullName.indexOf("_") + 1);
+};
 
   // 🆕 ADDED: Popup Helper Functions
   const showPopup = (type, title, message, onConfirm = null) => {
@@ -501,8 +510,6 @@ export default function StudyMaterials() {
     try {
       const res = await getMaterials();
       const list = res.ok && res.body ? res.body.data || res.body : [];
-      console.log("Materials API Response:", list);
-      console.log("Materials Count:", list.length);
       setMaterials(Array.isArray(list) ? list : []);
     } catch (err) {
       console.error("fetchMaterials error", err);
@@ -662,24 +669,41 @@ async function fetchCourses() {
 
   //filters
   const filtered = materials.filter((m) => {
-
   const matchSearch =
     !search ||
-    (m.title &&
-      m.title.toLowerCase().includes(search.toLowerCase())) ||
-    (m.tags &&
-      m.tags.toLowerCase().includes(search.toLowerCase()));
-
+    (m.title && m.title.toLowerCase().includes(search.toLowerCase())) ||
+    (m.tags && m.tags.toLowerCase().includes(search.toLowerCase()));
   const matchType =
-    filterType === "ALL" ||
-    getMaterialType(m) === filterType;
-
+    filterType === "ALL" || getMaterialType(m) === filterType;
   const matchCategory =
     filterCategory === "ALL" ||
-    (m.category &&
-      m.category.toLowerCase() === filterCategory.toLowerCase());
-
+      (m.tags &&
+        m.tags
+          .split(",")
+          .map((t) => t.trim().toLowerCase())
+          .includes(filterCategory.toLowerCase()));
   return matchSearch && matchType && matchCategory;
+});
+
+const sortedMaterials = [...filtered].sort((a, b) => {
+
+  if (sortBy === "name-asc") {
+    return a.title.localeCompare(b.title);
+  }
+
+  if (sortBy === "name-desc") {
+    return b.title.localeCompare(a.title);
+  }
+
+  if (sortBy === "newest") {
+    return new Date(b.createdAt) - new Date(a.createdAt);
+  }
+
+  if (sortBy === "oldest") {
+    return new Date(a.createdAt) - new Date(b.createdAt);
+  }
+
+  return 0;
 });
 
   return (
@@ -830,6 +854,18 @@ async function fetchCourses() {
         Filters
       </button>
 
+      <select
+        className="form-select"
+        value={sortBy}
+        onChange={(e) => setSortBy(e.target.value)}
+        style={{ width: "160px" }}
+      >
+        <option value="name-asc">A → Z</option>
+        <option value="name-desc">Z → A</option>
+        <option value="newest">Newest</option>
+        <option value="oldest">Oldest</option>
+      </select>
+
     </div>
   </div>
 
@@ -852,7 +888,7 @@ async function fetchCourses() {
               <option value="ALL">All Categories</option>
               <option value="Frontend">Frontend</option>
               <option value="Backend">Backend</option>
-              <option value="Fullstack">Fullstack</option>
+              <option value="Fullstack">Fullstack Development</option>
               <option value="DevOps">DevOps</option>
               <option value="Data Science">Data Science</option>
               <option value="Mobile">Mobile Development</option>
@@ -1013,6 +1049,11 @@ async function fetchCourses() {
                       required={!editingMaterial}
                       disabled={actionLoading === 'submit'}
                     />
+                    {editingMaterial && editingMaterial.fileUrl && !file && (
+                      <small className="text-success d-block mt-2">
+                        Current File: {getFileName(editingMaterial.fileUrl)}
+                      </small>
+                    )}
                     <small className="text-muted">
                       {editingMaterial ? 
                         "Leave empty to keep current file. For videos: MP4, WebM, or OGG formats recommended." : 
@@ -1100,7 +1141,7 @@ async function fetchCourses() {
               </div>
             ) : (
               <div className="grid-3x3-layout">
-                {filtered.map((m) => (
+                {sortedMaterials.map((m) => (
                   <div className="grid-3x3-item" key={m.id} style={{ minHeight: "240px" }}>
                     <div className="card study-card h-100 shadow-sm">
                       <div className="card-body d-flex flex-column" style={{ padding: "1rem" }}>
