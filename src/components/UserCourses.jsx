@@ -95,7 +95,7 @@ export default function UserCourses({ user }) {
           method: 'POST'
         });
         const result = await response.json();
-        
+        console.log(result);
         if (result.success) {
           alert('✅ Automatic reminders sent successfully!');
           // Refresh data
@@ -713,15 +713,15 @@ export default function UserCourses({ user }) {
                               </td>
                               <td>
                                 {enrollment.enrolledAt ? (
-                                  // <span className={`badge ${
-                                  //   Math.floor((new Date() - new Date(enrollment.enrolledAt)) / (1000 * 60 * 60 * 24)) > 15 ? 'bg-danger' : 'bg-info'
-                                  // }`}>
                                   <span className={`badge ${
+                                    Math.floor((new Date() - new Date(enrollment.enrolledAt)) / (1000 * 60 * 60 * 24)) > 15 ? 'bg-danger' : 'bg-info'
+                                  }`}>
+                                   {/* <span className={`badge ${
                                     new Date(enrollment.dueDate) < new Date() &&
                                     enrollment.progress < 100
                                       ? 'bg-danger'
                                       : 'bg-info'
-                                  }`}>
+                                  }`}> */}
                                     {Math.floor((new Date() - new Date(enrollment.enrolledAt)) / (1000 * 60 * 60 * 24))} days
                                   </span>
                                 ) : 'N/A'}
@@ -831,16 +831,16 @@ export default function UserCourses({ user }) {
                     <div className="col text-center">
                       <div className="card bg-danger text-white shadow-sm h-100">
                         <div className="card-body py-3 px-2">
-                          {/* <h5 className='fw-bold mb-1'>{enrollments.filter(e => 
+                          <h5 className='fw-bold mb-1'>{enrollments.filter(e => 
                             e.enrolledAt && 
                             Math.floor((new Date() - new Date(e.enrolledAt)) / (1000 * 60 * 60 * 24)) > 15 &&
                             e.progress < 50
-                          ).length}</h5> */}
-                          <h5 className='fw-bold mb-1'>{enrollments.filter(e =>
+                          ).length}</h5>
+                          {/* <h5 className='fw-bold mb-1'>{enrollments.filter(e =>
                             e.dueDate &&
                             new Date(e.dueDate) < new Date() &&
                             e.progress < 100
-                          ).length}</h5>
+                          ).length}</h5> */}
                           <small>Overdue</small>
                         </div>
                       </div>

@@ -83,21 +83,18 @@ export default function AdminDashboard({ user }) {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
           <h2 className="mb-1 fw-bold">📊 Admin Dashboard</h2>
-          <small className="text-muted">
+          <small className="text-muted fs-4">
             Overview of platform metrics and activities
           </small>
         </div>
-        <button className="btn btn-outline-primary btn-sm" onClick={loadDashboardData}>
+        {/* <button className="btn btn-outline-primary btn-sm" onClick={loadDashboardData}>
           🔄 Refresh
-        </button>
+        </button> */}
       </div>
 
       {/* Stats Cards - 4 columns for 8 cards */}
-      <div className="stats-grid mb-4" style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: '1rem'
-      }}>
+      <div className="stats-grid mb-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem'}}>
+
         {/* Card 1: Total Courses */}
         <div className="card border-0 shadow-sm h-100">
           <div className="card-body">
