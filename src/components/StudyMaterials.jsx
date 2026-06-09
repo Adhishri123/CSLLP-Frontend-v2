@@ -135,13 +135,11 @@ export default function StudyMaterials() {
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [message, setMessage] = useState({ text: "", type: "" });
 
-  // for search button modification
+ // for search button modification
   const [showSearch, setShowSearch] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [tempCategory, setTempCategory] = useState("ALL");
   const [tempType, setTempType] = useState("ALL");
-
-  
 
   // 🆕 ADDED: Popup State
   const [popup, setPopup] = useState({
@@ -175,12 +173,12 @@ export default function StudyMaterials() {
   const videoRef = useRef(null);
 
   const getFileName = (fileUrl) => {
-  if (!fileUrl) return "";
+    if(!fileUrl) return "";
 
-  const fullName = fileUrl.split("/").pop();
+    const fullName = fileUrl.split("/").pop();
 
-  return fullName.substring(fullName.indexOf("_") + 1);
-};
+    return fullName.substring(fullName.indexOf("_")+1);
+  };
 
   // 🆕 ADDED: Popup Helper Functions
   const showPopup = (type, title, message, onConfirm = null) => {
@@ -509,8 +507,20 @@ export default function StudyMaterials() {
     setLoading(true);
     try {
       const res = await getMaterials();
-      const list = res.ok && res.body ? res.body.data || res.body : [];
-      setMaterials(Array.isArray(list) ? list : []);
+      console.log("Materials Api Response:", res);
+       let list = [];
+
+        if (Array.isArray(res?.data)) {
+          list = res.data;
+        } else if (Array.isArray(res?.body?.data)) {
+          list = res.body.data;
+        } else if (Array.isArray(res?.body)) {
+          list = res.body;
+        }
+
+        console.log("Final Materials:", list);
+
+        setMaterials(list);
     } catch (err) {
       console.error("fetchMaterials error", err);
       setMaterials([]);
@@ -611,8 +621,8 @@ async function fetchCourses() {
 
         console.log("🔄 Uploading new material...");
         res = await uploadMaterial(formData);
-
-        if (res.ok && res.success) {
+console.log("Return from um ", res)
+        if (res.success) {
           showSuccess("Upload Successful", "✅ Material uploaded successfully!");
           await fetchMaterials();
           resetForm();
@@ -668,24 +678,24 @@ async function fetchCourses() {
   // });
 
   //filters
+  // const filtered = materials;
   const filtered = materials.filter((m) => {
-  const matchSearch =
-    !search ||
-    (m.title && m.title.toLowerCase().includes(search.toLowerCase())) ||
-    (m.tags && m.tags.toLowerCase().includes(search.toLowerCase()));
-  const matchType =
-    filterType === "ALL" || getMaterialType(m) === filterType;
-  const matchCategory =
-    filterCategory === "ALL" ||
-      (m.tags &&
-        m.tags
-          .split(",")
-          .map((t) => t.trim().toLowerCase())
-          .includes(filterCategory.toLowerCase()));
-  return matchSearch && matchType && matchCategory;
-});
+    const matchSearch =
+      !search ||
+      // (m.title && m.title.toLowerCase().includes(search.toLowerCase())) ||
+      // (m.tags && m.tags.toLowerCase().includes(search.toLowerCase()));
+      (m.title && m.title.toLowerCase().includes(search.toLowerCase())) ||
+      (m.tags && m.tags.toLowerCase().includes(search.toLowerCase()));
+    const matchType =
+      filterType === "ALL" || getMaterialType(m) === filterType;
+    const matchCategory =
+      filterCategory === "ALL" ||
+      // (m.category || "") === filterCategory;
+      (m.tags && m.tags.split(",").map((t) => t.trim().toLowerCase()).includes(filterCategory.toLowerCase()));
+    return matchSearch && matchType && matchCategory;
+  });
 
-const sortedMaterials = [...filtered].sort((a, b) => {
+  const sortedMaterials = [...filtered].sort((a, b) => {
 
   if (sortBy === "name-asc") {
     return a.title.localeCompare(b.title);
@@ -729,7 +739,7 @@ const sortedMaterials = [...filtered].sort((a, b) => {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
           <h2 className="mb-1 fw-bold">Study Materials</h2>
-          <small className="text-muted">
+          <small className="text-muted fs-4 fw-bold">
             Access resources and track your progress!
           </small>
         </div>
@@ -822,51 +832,50 @@ const sortedMaterials = [...filtered].sort((a, b) => {
       </div> */}
 
       {/* Search & Filter */}
-    <div className="d-flex justify-content-between align-items-center mb-4">
+    <div className="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
 
-    <div className="d-flex align-items-center gap-2">
+      {/* Left Side - Search */}
+      <div className="d-flex align-items-center gap-2">
+        <button
+          className="btn btn-outline-secondary action-btn"
+          onClick={() => setShowSearch(!showSearch)}
+          style={{width:"100px"}}
+        >
+          🔍
+        </button>
 
-      {/* Search Icon */}
-      <button
-        className="btn btn-outline-secondary"
-        onClick={() => setShowSearch(!showSearch)}
-      >
-        🔍
-      </button>
+        {showSearch && (
+          <input
+            type="text"
+            className="form-control search-input"
+            placeholder="Search materials..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{width:"800px"}}
+          />
+        )}
+      </div>
 
-      {/* Search Input */}
-      {showSearch && (
-        <input
-          type="text"
-          className="form-control"
-          placeholder="Search materials..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ width: "220px" }}
-        />
-      )}
+      {/* Right Side - Filters & Sorting */}
+      <div className="d-flex align-items-center gap-2">
+        <button
+          className="btn btn-outline-primary action-btn"
+          onClick={() => setShowFilters(!showFilters)}
+        >
+          Filters
+        </button>
 
-      {/* Filter Toggle */}
-      <button
-        className="btn btn-outline-primary"
-        onClick={() => setShowFilters(!showFilters)}
-      >
-        Filters
-      </button>
-
-      <select
-        className="form-select"
-        value={sortBy}
-        onChange={(e) => setSortBy(e.target.value)}
-        style={{ width: "160px" }}
-      >
-        <option value="name-asc">A → Z</option>
-        <option value="name-desc">Z → A</option>
-        <option value="newest">Newest</option>
-        <option value="oldest">Oldest</option>
-      </select>
-
-    </div>
+        <select
+          className="form-select sort-select"
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+        >
+          <option value="name-asc">A → Z</option>
+          <option value="name-desc">Z → A</option>
+          <option value="newest">Newest</option>
+          <option value="oldest">Oldest</option>
+        </select>
+      </div>
   </div>
 
   {/* Filters Section */}
@@ -1107,7 +1116,7 @@ const sortedMaterials = [...filtered].sort((a, b) => {
         <>
           {/* Results Count */}
           <div className="d-flex justify-content-between align-items-center mb-3">
-            <small className="text-muted">
+            <small className="text-muted fs-6">
               Showing {filtered.length} of {materials.length} materials
             </small>
           </div>
@@ -1174,65 +1183,98 @@ const sortedMaterials = [...filtered].sort((a, b) => {
                             ))}
                         </div>
 
-                        <div className="mt-auto"><div className="d-flex gap-2 flex-wrap mt-2">
-                          
-                            {getMaterialType(m) === "VIDEO" ? (
-                              <button
-                                className={`btn btn-sm action-btn ${getButtonClass(m)}`}
-                                onClick={() => handleVideoClick(m)}
-                                disabled={actionLoading}
-                              >
-                                {getActionLabel(m)}
-                              </button>
-                            ) : (
-                              <button
-                                className={`btn btn-sm action-btn ${getButtonClass(m)}`}
-                                onClick={() => handleDocumentClick(m)}
-                                disabled={actionLoading}
-                              >
-                                {getActionLabel(m)}
-                              </button>
-                            )}
-                            
-                            <button
-                              className="btn btn-sm btn-outline-success"
-                              onClick={() => handleDownload(m)}
-                              title="Download this file"
-                              disabled={actionLoading === m.id}
-                            >
-                              {actionLoading === m.id ? (
-                                <span className="spinner-border spinner-border-sm" />
-                              ) : (
-                                "📥 Download"
-                              )}
-                            </button>
+                        <div className="mt-auto">
 
-                            {/* ONLY show edit/delete to authorized users */}
-                            {canEditMaterials(user) && (
-                              <button
-                                className="btn btn-sm btn-outline-warning flex-fill"
-                                onClick={() => startEdit(m)}
-                                title="Edit this material"
-                                disabled={actionLoading}
-                              >
-                                ✏️ Edit
-                              </button>
-                            )}
+                          {/* First raw */}
+                          <div className="row g-2  mb-2">
+                            <div className="col-6">
+                              {getMaterialType(m) === "VIDEO" ? (
+                                <button
+                                  className={`btn btn-sm action-btn w-100 ${getButtonClass(m)}`}
+                                  onClick={() => handleVideoClick(m)}
+                                  disabled={actionLoading}
+                                >
+                                  {getActionLabel(m)}
+                                </button>
+                              ) : (
+                                <button
+                                  className={`btn btn-sm action-btn w-100 ${getButtonClass(m)}`}
+                                  onClick={() => handleDocumentClick(m)}
+                                  disabled={actionLoading}
+                                >
+                                  {getActionLabel(m)}
+                                </button>
+                              )}
+                            </div>
                             
-                            {canDeleteMaterials(user) && (
+                            <div className="col-6">
                               <button
-                                className="btn btn-sm btn-outline-danger flex-fill"
-                                onClick={() => handleDelete(m.id)}
+                                className="btn btn-sm w-100 btn-outline-success"
+                                onClick={() => handleDownload(m)}
+                                title="Download this file"
                                 disabled={actionLoading === m.id}
                               >
                                 {actionLoading === m.id ? (
                                   <span className="spinner-border spinner-border-sm" />
                                 ) : (
-                                  "🗑️ Delete"
+                                  "📥 Download"
                                 )}
                               </button>
+                            </div>
+
+                            {/* ONLY show edit/delete to authorized users */}
+                            {/* Second row */}
+                            {canEditMaterials(user) && canDeleteMaterials(user) && (
+                              <div className="row g-2">
+                                <div className="col-6">
+                                  <button
+                                    className="btn btn-sm btn-outline-warning w-100"
+                                    onClick={() => startEdit(m)}
+                                  >
+                                    ✏️ Edit
+                                  </button>
+                                </div>
+
+                                <div className="col-6">
+                                  <button
+                                    className="btn btn-sm btn-outline-danger w-100"
+                                    onClick={() => handleDelete(m.id)}
+                                  >
+                                    🗑️ Delete
+                                  </button>
+                                </div>
+                              </div>
                             )}
+                            {/* {canEditMaterials(user) && (
+                              <div className="col-6">
+                                <button
+                                  className="btn btn-sm w-100 btn-outline-warning flex-fill"
+                                  onClick={() => startEdit(m)}
+                                  title="Edit this material"
+                                  disabled={actionLoading}
+                                >
+                                  ✏️ Edit
+                                </button>
+                              </div>
+                            )}
+                            
+                            {canDeleteMaterials(user) && (
+                              <div className="col-6">
+                                <button
+                                  className="btn btn-sm w-100 btn-outline-danger flex-fill"
+                                  onClick={() => handleDelete(m.id)}
+                                  disabled={actionLoading === m.id}
+                                >
+                                  {actionLoading === m.id ? (
+                                    <span className="spinner-border spinner-border-sm" />
+                                  ) : (
+                                    "🗑️ Delete"
+                                  )}
+                                </button>
+                              </div>
+                            )} */}
                           </div>
+                          
                           <div className="small text-muted mt-2 text-end">
                             {m.createdAt
                               ? new Date(m.createdAt).toLocaleDateString()
@@ -1576,6 +1618,7 @@ const sortedMaterials = [...filtered].sort((a, b) => {
                 </button>
               </div>
             </div>
+            
           </div>
         </div>
       )}

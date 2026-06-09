@@ -23,11 +23,11 @@ export default function AdminDashboard({ user }) {
     try {
       // Load course report
       const reportRes = await getCourseReport();
-      console.log("📊 Course Report Response:", reportRes); // Debug log
+      console.log("📊 Course Report Response:", reportRes.data); // Debug log
       
-      if (reportRes.ok && reportRes.body.success) {
-        const reportData = reportRes.body.data || reportRes.body;
-        
+      if (reportRes.success) {
+        const reportData = reportRes.data;
+        // console.log("📊 Course Report Response:", reportData.data);
         setStats(prev => ({
           ...prev,
           totalCourses: reportData.totalCourses || 0,
@@ -39,8 +39,9 @@ export default function AdminDashboard({ user }) {
 
       // Load total employees, managers, and total users
       const usersRes = await getUsers();
-      if (usersRes.ok && usersRes.body.success) {
-        const users = usersRes.body.data || [];
+      console.log("📊 User Response:", usersRes.data);
+      if (usersRes.success) {
+        const users = usersRes.data || [];
         const employees = users.filter(u => u.role === 'EMPLOYEE');
         const managers = users.filter(u => u.role === 'MANAGER');
         const totalUsers = employees.length + managers.length;
@@ -55,8 +56,8 @@ export default function AdminDashboard({ user }) {
 
       // Load total feedbacks from admin stats
       const adminStatsRes = await getAdminStats();
-      if (adminStatsRes.ok && adminStatsRes.body.success) {
-        const adminStats = adminStatsRes.body.data || adminStatsRes.body;
+      if (adminStatsRes.success) {
+        const adminStats = adminStatsRes.data;
         setStats(prev => ({ 
           ...prev, 
           totalFeedbacks: adminStats.totalFeedbacks || 0 
@@ -65,8 +66,8 @@ export default function AdminDashboard({ user }) {
 
       // Load pending enrollments for activity
       const pendingRes = await getPendingEnrollments();
-      if (pendingRes.ok && pendingRes.body.success) {
-        setRecentActivity(pendingRes.body.data.slice(0, 5));
+      if (pendingRes.success) {
+        setRecentActivity((pendingRes.data || []).slice(0, 5));
       }
 
     } catch (error) {
@@ -75,6 +76,63 @@ export default function AdminDashboard({ user }) {
       setLoading(false);
     }
   };
+
+  // const loadDashboardData = async () => {
+  //   try {
+  //     // Load course report
+  //     const reportRes = await getCourseReport();
+  //     console.log("📊 Course Report Response:", reportRes.data); // Debug log
+      
+  //     if (reportRes.ok && reportRes.body.success) {
+  //       const reportData = reportRes.body.data || reportRes.body;
+  //       setStats(prev => ({
+  //         ...prev,
+  //         totalCourses: reportData.totalCourses || 0,
+  //         completedCourses: reportData.completedEnrollments || 0,
+  //         pendingApprovals: reportData.pendingApprovals || 0,
+  //         activeEnrollments: reportData.activeEnrollments || 0
+  //       }));
+  //     }
+
+  //     // Load total employees, managers, and total users
+  //     const usersRes = await getUsers();
+  //     console.log("📊 User Response:", usersRes.data);
+  //     if (usersRes.ok && usersRes.body.success) {
+  //       const users = usersRes.body.data || [];
+  //       const employees = users.filter(u => u.role === 'EMPLOYEE');
+  //       const managers = users.filter(u => u.role === 'MANAGER');
+  //       const totalUsers = employees.length + managers.length;
+        
+  //       setStats(prev => ({ 
+  //         ...prev, 
+  //         totalEmployees: employees.length,
+  //         totalManagers: managers.length,
+  //         totalUsers: totalUsers
+  //       }));
+  //     }
+
+  //     // Load total feedbacks from admin stats
+  //     const adminStatsRes = await getAdminStats();
+  //     if (adminStatsRes.ok && adminStatsRes.body.success) {
+  //       const adminStats = adminStatsRes.body.data || adminStatsRes.body;
+  //       setStats(prev => ({ 
+  //         ...prev, 
+  //         totalFeedbacks: adminStats.totalFeedbacks || 0 
+  //       }));
+  //     }
+
+  //     // Load pending enrollments for activity
+  //     const pendingRes = await getPendingEnrollments();
+  //     if (pendingRes.ok && pendingRes.body.success) {
+  //       setRecentActivity(pendingRes.body.data.slice(0, 5));
+  //     }
+
+  //   } catch (error) {
+  //     console.error('Failed to load dashboard data:', error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   if (loading) return <div className="text-center p-4">Loading dashboard...</div>;
 
@@ -93,7 +151,7 @@ export default function AdminDashboard({ user }) {
       </div>
 
       {/* Stats Cards - 4 columns for 8 cards */}
-      <div className="stats-grid mb-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem'}}>
+      <div className="stats-grid mb-4" style={{ display: 'grid',  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem'}}>
 
         {/* Card 1: Total Courses */}
         <div className="card border-0 shadow-sm h-100">

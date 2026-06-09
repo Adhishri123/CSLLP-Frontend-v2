@@ -266,8 +266,9 @@ function CreateCourseTab({ user, showSuccess, showError }) {
     setMaterialsLoading(true);
     try {
       const res = await getMaterials();
-      if (res.ok && res.body && res.body.success) {
-        setAvailableMaterials(res.body.data || []);
+      console.log("get materials:", res)
+      if (res.success) {
+        setAvailableMaterials(res.data || []);
       }
     } catch (error) {
       console.error("Failed to load materials:", error);
@@ -297,10 +298,10 @@ function CreateCourseTab({ user, showSuccess, showError }) {
         materials: formData.materials,
         isMandatory: formData.isMandatory
       };
-      
+      console.log("Create course API:",courseData);
       const res = await createCourse(courseData);
-      
-      if (res.ok && res.body && res.body.success) {
+      console.log("Get create course API:",res);
+      if (res.success) {
         showSuccess(
           "Course Created Successfully!",
           <div className="text-start">
@@ -331,7 +332,7 @@ function CreateCourseTab({ user, showSuccess, showError }) {
         setSearchTerm('');
         setIsDropdownOpen(false);
       } else {
-        const errorMsg = res.body?.message || 'Unknown error occurred';
+        const errorMsg = res.message || 'Unknown error occurred';
         showError(
           "Course Creation Failed",
           <div className="text-start">
@@ -822,9 +823,10 @@ function CourseCatalogTab({ user, showSuccess, showError, showConfirm }) {
     setLoading(true);
     try {
       const res = await getAllCoursesForAdmin();
-      
-      if (res.ok && res.body && res.body.success) {
-        const coursesData = res.body.data || [];
+      console.log("Get All courses:", res);
+      if (res.success) {
+        const coursesData = res.data || [];
+console.log("Get courses:", coursesData)
         setCourses(coursesData);
       } else {
         setCourses([res.body.data || []]);
@@ -843,11 +845,17 @@ function CourseCatalogTab({ user, showSuccess, showError, showConfirm }) {
     setMaterialsLoading(true);
     try {
       const res = await getMaterials();
-      if (res.ok && res.body && res.body.success) {
-        setAvailableMaterials(res.body.data || []);
-      }
+      console.log("Get all Materials",res);
+      if (res?.success) {
+        setAvailableMaterials(res.data || []);
+      }else if (Array.isArray(res)) {
+      setAvailableMaterials(res);
+    }else {
+      setAvailableMaterials([]);
+    }
     } catch (error) {
       console.error("Failed to load materials:", error);
+      setAvailableMaterials([]);
     } finally {
       setMaterialsLoading(false);
     }
@@ -877,7 +885,7 @@ function CourseCatalogTab({ user, showSuccess, showError, showConfirm }) {
         res = await updateCourse(course.id, courseData);
       }
       
-      if (res.ok && res.body && res.body.success) {
+      if (res.success) {
         showSuccess(
           `Course ${newStatus === 'ACTIVE' ? 'Activated' : 'Deactivated'}!`,
           <div className="text-start">
@@ -944,7 +952,7 @@ function CourseCatalogTab({ user, showSuccess, showError, showConfirm }) {
 
       const res = await updateCourse(editingCourse.id, courseData);
       
-      if (res.ok && res.body && res.body.success) {
+      if (res.success) {
         showSuccess(
           "Course Updated Successfully!",
           <div className="text-start">
@@ -958,7 +966,7 @@ function CourseCatalogTab({ user, showSuccess, showError, showConfirm }) {
         setEditingCourse(null);
         loadCourses();
       } else {
-        const errorMessage = res.body?.message || 'Unknown error';
+        const errorMessage = res.message || 'Unknown error';
         showError(
           "Update Failed",
           <div className="text-start">
@@ -1430,8 +1438,8 @@ function CourseAssignmentsTab({ showSuccess, showError }) {
   const loadAssignments = async () => {
     try {
       const res = await getAssignments(filters);
-      if (res.ok && res.body && res.body.success) {
-        setAssignments(res.body.data || []);
+      if (res.success) {
+        setAssignments(res.data || []);
       } else {
         setAssignments([]);
         showError("Load Error", "Failed to load assignments. Please try again.");
@@ -1689,8 +1697,8 @@ function AssignCourseTab({ user, showSuccess, showError }) {
     setEmployeesLoading(true);
     try {
       const res = await getUsers();
-      if (res.ok && res.body && res.body.success) {
-        const employees = (res.body.data || []).filter(employee => 
+      if (res.success) {
+        const employees = (res.data || []).filter(employee => 
           employee.role === 'EMPLOYEE' || !employee.role
         ).map(employee => {
           const employeeName = employee.name || employee.fullName || `${employee.firstName || ''} ${employee.lastName || ''}`.trim() || employee.username || employee.email || 'Unknown User';
@@ -1724,9 +1732,9 @@ function AssignCourseTab({ user, showSuccess, showError }) {
     setCoursesLoading(true);
     try {
       const res = await getAllCoursesForAdmin();
-      if (res.ok && res.body && res.body.success) {
+      if (res.success) {
         // Filter to show only active courses and simplify data
-        const courses = (res.body.data || []).filter(course => 
+        const courses = (res.data || []).filter(course => 
           course.status === 'ACTIVE' || !course.status
         ).map(course => ({
           id: course.id,
@@ -1903,8 +1911,8 @@ function AssignCourseTab({ user, showSuccess, showError }) {
 
     const res = await createBulkAssignment(assignmentData);
     
-    if (res.ok && res.body && res.body.success) {
-      const result = res.body.data;
+    if (res.success) {
+      const result = res.data;
       
       showSuccess(
         "Bulk Assignment Completed!",

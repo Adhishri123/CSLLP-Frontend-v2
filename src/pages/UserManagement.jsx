@@ -24,10 +24,12 @@ export default function UserManagement({ currentUser }) {
     setLoading(true);
     try {
       const mgrRes = await getManagers();
-      if (mgrRes.ok) setManagers(mgrRes.body.data || []);
+      console.log("Get manager:",mgrRes);
+      if (mgrRes?.success) setManagers(mgrRes.data || []);
       
       const usersRes = await getUsers();
-      if (usersRes.ok) setAllUsers(usersRes.body.data || []);
+      console.log("Get users:",usersRes);
+      if (usersRes?.success) setAllUsers(usersRes.data || []);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -127,7 +129,7 @@ export default function UserManagement({ currentUser }) {
     }
 
     const res = await updateUser(userId, payload);
-    if (res.ok) {
+    if (res?.success) {
       setEditUser(null);
       loadData();
     } else {

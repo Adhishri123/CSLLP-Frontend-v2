@@ -33,15 +33,15 @@ export default function UserCourses({ user }) {
     try {
       // Load employees
       const usersRes = await getUsers();
-      if (usersRes.ok && usersRes.body && usersRes.body.success) {
-        const employeeUsers = usersRes.body.data.filter(u => u.role === 'EMPLOYEE');
+      if (usersRes.success) {
+        const employeeUsers = usersRes.data.filter(u => u.role === 'EMPLOYEE');
         setEmployees(employeeUsers);
       }
 
       // Load courses for mapping
       const coursesRes = await getCourses();
-      if (coursesRes.ok && coursesRes.body && coursesRes.body.success) {
-        setCourses(coursesRes.body.data || []);
+      if (coursesRes.success) {
+        setCourses(coursesRes.data || []);
       }
     } catch (error) {
       console.error('Failed to load initial data:', error);
@@ -74,8 +74,8 @@ export default function UserCourses({ user }) {
   const loadEmployeeEnrollments = async (employeeId) => {
     try {
       const res = await getEnrollmentsByEmployee(employeeId);
-      if (res.ok && res.body && res.body.success) {
-        setEnrollments(res.body.data || []);
+      if (res.success) {
+        setEnrollments(res.data || []);
         setSelectedEmployee(employeeId);
         // Reset enrollment pagination when selecting new employee
         setCurrentEnrollmentPage(1);

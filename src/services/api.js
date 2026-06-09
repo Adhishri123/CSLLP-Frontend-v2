@@ -3,12 +3,46 @@
 // BASE URLs
 // ============================================================================
 const USER_BASE = process.env.REACT_APP_USER_SERVICE || 'http://localhost:8081';
-const COURSE_BASE = process.env.REACT_APP_COURSE_SERVICE || 'http://localhost:8091';
+const COURSE_BASE = process.env.REACT_APP_COURSE_SERVICE || 'http://localhost:8088';
 const MATERIAL_BASE = process.env.REACT_APP_MATERIAL_SERVICE || 'http://localhost:8082';
 const EXAM_BASE = process.env.REACT_APP_EXAM_SERVICE || 'http://localhost:8083/api/exams';
 const NOTIF_BASE = process.env.REACT_APP_NOTIFICATION_SERVICE || 'http://localhost:8089';
 const FEEDBACK_BASE = process.env.REACT_APP_FEEDBACK_SERVICE || 'http://localhost:8087';
 const CERTIFICATE_BASE = process.env.REACT_APP_CERTIFICATE_SERVICE || 'http://localhost:8084/api/certificate';
+
+// Common authenticated fetch wrapper
+// async function authFetch(url, options = {}) {
+
+//   const token = localStorage.getItem("token");
+
+//   return fetch(url, {
+//     ...options,
+//     headers: {
+//       "Content-Type": "application/json",
+//       Authorization: token ? `Bearer ${token}` : "",
+//       ...options.headers
+//     }
+//   });
+// }
+
+export async function authFetch(url, options = {}) {
+  const token = localStorage.getItem("token");
+
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    ...options.headers,
+  };
+
+  // Don't set Content-Type when using FormData
+  if (!(options.body instanceof FormData)) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  return fetch(url, {
+    ...options,
+    headers,
+  });
+}
 
 // ============================================================================
 // RESPONSE PARSER (Single source of truth)
@@ -61,24 +95,46 @@ async function parseResponse(response) {
   }
 }
 
+// async function parseJson(res) {
+//   return await parseResponse(res);
+// }
 async function parseJson(res) {
-  return await parseResponse(res);
+  if(res.status === 401) {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
+    alert ("Session expired. Please login again.");
+
+    window.location.href = "/";
+    throw new Error("Session expired");
+  }
+  const data = await res.json();
+  if(!res.ok) {
+    throw new Error(data.message || "Something went wrong");
+  }
+  return data;
 }
 
 // ============================================================================
 // STORAGE HELPERS
 // ============================================================================
+// export function saveUserToStorage(user) {
+//   localStorage.setItem('csllp_user', JSON.stringify(user));
+// }
 export function saveUserToStorage(user) {
-  localStorage.setItem('csllp_user', JSON.stringify(user));
+  localStorage.setItem("user", JSON.stringify(user));
 }
 
 export function loadUserFromStorage() {
-  const s = localStorage.getItem('csllp_user');
+  const s = localStorage.getItem("user");
   return s ? JSON.parse(s) : null;
 }
 
+// export function clearUser() {
+//   localStorage.removeItem('csllp_user');
+// }
 export function clearUser() {
-  localStorage.removeItem('csllp_user');
+  localStorage.removeItem("user");
 }
 
 // ============================================================================
@@ -111,16 +167,17 @@ export function isAdminOrManager(user) {
 // ============================================================================
 // USER SERVICE
 // ============================================================================
-export async function authLogin(payload) {
+
+export async function authLogin({email, password, role}) {
   const res = await fetch(`${USER_BASE}/api/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+    body: JSON.stringify({email, password, role}),
   });
   return parseJson(res);
 }
 
-export async function authRegister(payload, creatorId, creatorRole) {
+export async function authRegister(userData, creatorId, creatorRole) {
   const headers = { 'Content-Type': 'application/json' };
   if (creatorId) headers['X-Creator-Id'] = String(creatorId);
   if (creatorRole) headers['X-Creator-Role'] = creatorRole;
@@ -128,10 +185,20 @@ export async function authRegister(payload, creatorId, creatorRole) {
   const res = await fetch(`${USER_BASE}/api/auth/register`, {
     method: 'POST',
     headers,
-    body: JSON.stringify(payload),
+    body: JSON.stringify(userData),
   });
   return parseJson(res);
 }
+
+// export async function authLogin(payload) {
+//   const res = await fetch(`${USER_BASE}/api/auth/login`, {
+//     method: 'POST',
+//     headers: { 'Content-Type': 'application/json' },
+//     body: JSON.stringify(payload),
+//   });
+//   return parseJson(res);
+// }
+
 
 export async function forgotPassword(email) {
   try {
@@ -175,113 +242,195 @@ export async function resetPassword(email, otp, newPassword) {
   }
 }
 
-export async function getUsers(managerId) {
-  const url = managerId
-    ? `${USER_BASE}/api/users?managerId=${managerId}`
-    : `${USER_BASE}/api/users/role/ALL`;
-  return parseJson(await fetch(url));
+export async function getUsers() {
+  const res = await authFetch(`${USER_BASE}/api/users`);
+  return parseJson(res);
 }
 
 export async function getUsersByRole(role) {
-  return parseJson(await fetch(`${USER_BASE}/api/users/role/${role}`));
+  const res = await authFetch(`${USER_BASE}/api/users/role/${role}`);
+  return parseJson(res);
 }
 
 export async function getUserById(id) {
-  return parseJson(await fetch(`${USER_BASE}/api/users/${id}`));
+  const res = await authFetch(`${USER_BASE}/api/users/${id}`);
+  return parseJson(res);
+}
+
+export async function getManagers() {
+  const res = await authFetch(`${USER_BASE}/api/users/role/MANAGER`);
+  return parseJson(res);
+}
+
+export async function getUserProfile(userId) {
+  
+    console.log("Loading profile for:", userId);
+    const res = await authFetch(`${USER_BASE}/api/users/profile/${userId}`);
+    console.log("Profile API Status:", res.status);
+  return parseJson(res);
 }
 
 export async function updateUser(id, payload) {
-  const res = await fetch(`${USER_BASE}/api/users/${id}`, {
+  const res = await authFetch(`${USER_BASE}/api/users/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
   return parseJson(res);
 }
 
 export async function softDeleteUser(id) {
-  const res = await fetch(`${USER_BASE}/api/users/${id}`, { method: 'DELETE' });
-  return parseJson(res);
-}
-
-export async function getManagers() {
-  return parseJson(await fetch(`${USER_BASE}/api/users/role/MANAGER`));
-}
-
-export async function activateUser(id) {
-  const res = await fetch(`${USER_BASE}/api/users/${id}/activate`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+  const res = await authFetch(`${USER_BASE}/api/users/${id}`, {
+     method: 'DELETE', 
   });
   return parseJson(res);
 }
 
-export async function getUserProfile(userId) {
-  return parseJson(await fetch(`${USER_BASE}/api/users/profile/${userId}`));
+export async function activateUser(id) {
+  const res = await authFetch(`${USER_BASE}/api/users/${id}/activate`, {
+    method: 'PUT'
+  });
+  return parseJson(res);
 }
 
 export async function updateUserProfile(userId, payload) {
-  const res = await fetch(`${USER_BASE}/api/users/profile/${userId}`, {
+  const res = await authFetch(`${USER_BASE}/api/users/profile/${userId}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
   return parseJson(res);
 }
 
 export async function getUserDashboard(userId) {
-  return parseJson(await fetch(`${USER_BASE}/api/users/dashboard/${userId}`));
+  const res = await authFetch(`${USER_BASE}/api/users/dashboard/${userId}`);
+  return parseJson(res);
 }
 
 export async function searchUsers(query) {
-  return parseJson(await fetch(`${USER_BASE}/api/users/search?query=${query}`));
+  const res = await authFetch(`${USER_BASE}/api/users/search?keyword=${encodeURIComponent(query)}`);
+  return parseJson(res);
 }
 
 export async function checkUserExists(userId) {
-  const res = await fetch(`${USER_BASE}/api/users/${userId}/exists`);
+  const res = await authFetch(`${USER_BASE}/api/users/${userId}/exists`);
   return parseJson(res);
 }
 
 export async function getManagerTeamEmployees(managerId) {
   try {
-    const res = await fetch(`${USER_BASE}/api/users/manager/${managerId}/team`);
-    return await parseJson(res);
+    const res = await authFetch(`${USER_BASE}/api/users/manager/${managerId}/team`);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: [], success: false, message: 'Failed to fetch team' };
   }
 }
+
+// export async function getUsers(managerId) {
+//   const url = managerId
+//     ? `${USER_BASE}/api/users?managerId=${managerId}`
+//     : `${USER_BASE}/api/users/role/ALL`;
+//   return parseJson(await fetch(url));
+// }
+
+// export async function getUsersByRole(role) {
+//   return parseJson(await fetch(`${USER_BASE}/api/users/role/${role}`));
+// }
+
+// export async function getUserById(id) {
+//   return parseJson(await fetch(`${USER_BASE}/api/users/${id}`));
+// }
+
+// export async function getManagers() {
+//   return parseJson(await fetch(`${USER_BASE}/api/users/role/MANAGER`));
+// }
+
+// export async function getUserProfile(userId) {
+//   return parseJson(await fetch(`${USER_BASE}/api/users/profile/${userId}`));
+// }
+
+// export async function updateUser(id, payload) {
+//   const res = await fetch(`${USER_BASE}/api/users/${id}`, {
+//     method: 'PUT',
+//     headers: { 'Content-Type': 'application/json' },
+//     body: JSON.stringify(payload),
+//   });
+//   return parseJson(res);
+// }
+
+// export async function softDeleteUser(id) {
+//   const res = await fetch(`${USER_BASE}/api/users/${id}`, { method: 'DELETE' });
+//   return parseJson(res);
+// }
+
+// export async function activateUser(id) {
+//   const res = await fetch(`${USER_BASE}/api/users/${id}/activate`, {
+//     method: 'PUT',
+//     headers: { 'Content-Type': 'application/json' },
+//   });
+//   return parseJson(res);
+// }
+
+// export async function updateUserProfile(userId, payload) {
+//   const res = await fetch(`${USER_BASE}/api/users/profile/${userId}`, {
+//     method: 'PUT',
+//     headers: { 'Content-Type': 'application/json' },
+//     body: JSON.stringify(payload),
+//   });
+//   return parseJson(res);
+// }
+
+// export async function getUserDashboard(userId) {
+//   return parseJson(await fetch(`${USER_BASE}/api/users/dashboard/${userId}`));
+// }
+
+// export async function searchUsers(query) {
+//   return parseJson(await fetch(`${USER_BASE}/api/users/search?query=${query}`));
+// }
+
+// export async function checkUserExists(userId) {
+//   const res = await fetch(`${USER_BASE}/api/users/${userId}/exists`);
+//   return parseJson(res);
+// }
+
+// export async function getManagerTeamEmployees(managerId) {
+//   try {
+//     const res = await fetch(`${USER_BASE}/api/users/manager/${managerId}/team`);
+//     return await parseJson(res);
+//   } catch (error) {
+//     return { ok: false, body: null, data: [], success: false, message: 'Failed to fetch team' };
+//   }
+// }
 
 // ============================================================================
 // COURSE SERVICE
 // ============================================================================
 export async function getCourses() {
   try {
-    const res = await fetch(`${COURSE_BASE}/courses`);
-    return await parseJson(res);
+    const res = await authFetch(`${COURSE_BASE}/courses`);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: null, success: false, message: 'Failed to fetch courses' };
   }
 }
 
 export async function getAllCourses() {
-  return parseJson(await fetch(`${COURSE_BASE}/courses`));
+  return parseJson(await authFetch(`${COURSE_BASE}/courses`));
 }
 
 export async function getAllCoursesForAdmin() {
   try {
-    const res = await fetch(`${COURSE_BASE}/courses/admin/all`);
-    return await parseJson(res);
+    const res = await authFetch(`${COURSE_BASE}/courses/admin/all`);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: [], success: false, message: 'Failed to fetch all courses' };
   }
 }
 
 export async function getCourseById(id) {
-  return parseJson(await fetch(`${COURSE_BASE}/courses/${id}`));
+  return parseJson(await authFetch(`${COURSE_BASE}/courses/${id}`));
 }
 
 export async function createCourse(payload) {
-  const res = await fetch(`${COURSE_BASE}/courses`, {
+  const res = await authFetch(`${COURSE_BASE}/courses`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -300,27 +449,27 @@ export async function createCourse(payload) {
 }
 
 export async function updateCourse(id, payload) {
-  const res = await fetch(`${COURSE_BASE}/courses/${id}`, {
+  const res = await authFetch(`${COURSE_BASE}/courses/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    // headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
   return parseJson(res);
 }
 
 export async function deleteCourse(id) {
-  const res = await fetch(`${COURSE_BASE}/courses/${id}`, { method: 'DELETE' });
+  const res = await authFetch(`${COURSE_BASE}/courses/${id}`, { method: 'DELETE' });
   return parseJson(res);
 }
 
 export async function getMyAvailableCourses(userId) {
-  return parseJson(await fetch(`${COURSE_BASE}/courses/available/${userId}`));
+  return parseJson(await authFetch(`${COURSE_BASE}/courses/available/${userId}`));
 }
 
 export async function getCourseReport() {
   try {
-    const res = await fetch(`${COURSE_BASE}/courses/reports/summary`);
-    return await parseJson(res);
+    const res = await authFetch(`${COURSE_BASE}/courses/reports/summary`);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: {}, success: false, message: 'Failed to generate report' };
   }
@@ -331,8 +480,8 @@ export async function getCourseMaterials(courseId) {
     if (!courseId || courseId === 'undefined') {
       return { ok: false, body: null, data: [], success: false, message: 'Invalid course ID' };
     }
-    const res = await fetch(`${COURSE_BASE}/courses/${courseId}/materials`);
-    return await parseJson(res);
+    const res = await authFetch(`${COURSE_BASE}/courses/${courseId}/materials`);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: [], success: false, message: 'Failed to fetch course materials' };
   }
@@ -342,9 +491,9 @@ export async function getCourseMaterials(courseId) {
 // ENROLLMENTS
 // ============================================================================
 export async function enrollCourse(payload) {
-  const res = await fetch(`${COURSE_BASE}/courses/enroll`, {
+  const res = await authFetch(`${COURSE_BASE}/courses/enroll`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    // headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       courseId: payload.courseId,
       employeeId: payload.employeeId
@@ -355,8 +504,8 @@ export async function enrollCourse(payload) {
 
 export async function getMyCourses(employeeId) {
   try {
-    const res = await fetch(`${COURSE_BASE}/courses/my/${employeeId}`);
-    return await parseJson(res);
+    const res = await authFetch(`${COURSE_BASE}/courses/my/${employeeId}`);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: [], success: false, message: 'Failed to load courses' };
   }
@@ -364,15 +513,15 @@ export async function getMyCourses(employeeId) {
 
 export async function getEnrollmentsByEmployee(employeeId) {
   try {
-    const res = await fetch(`${COURSE_BASE}/courses/enrollments/${employeeId}`);
-    return await parseJson(res);
+    const res = await authFetch(`${COURSE_BASE}/courses/enrollments/${employeeId}`);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: [], success: false, message: 'Failed to load enrollments' };
   }
 }
 
 export async function updateProgress(enrollmentId, progress) {
-  const res = await fetch(`${COURSE_BASE}/courses/enrollments/${enrollmentId}/progress?progress=${progress}`, {
+  const res = await authFetch(`${COURSE_BASE}/courses/enrollments/${enrollmentId}/progress?progress=${progress}`, {
     method: 'PUT'
   });
   return parseJson(res);
@@ -380,11 +529,11 @@ export async function updateProgress(enrollmentId, progress) {
 
 export async function incrementProgress(enrollmentId, incrementBy) {
   try {
-    const res = await fetch(`${COURSE_BASE}/courses/enrollments/${enrollmentId}/increment-progress?incrementBy=${incrementBy}`, {
+    const res = await authFetch(`${COURSE_BASE}/courses/enrollments/${enrollmentId}/increment-progress?incrementBy=${incrementBy}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      // headers: { 'Content-Type': 'application/json' },
     });
-    return await parseJson(res);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: null, success: false, message: 'Failed to increment progress' };
   }
@@ -392,11 +541,11 @@ export async function incrementProgress(enrollmentId, incrementBy) {
 
 export async function markContentComplete(enrollmentId, contentType, contentTitle) {
   try {
-    const res = await fetch(`${COURSE_BASE}/courses/enrollments/${enrollmentId}/mark-complete?contentType=${encodeURIComponent(contentType)}&contentTitle=${encodeURIComponent(contentTitle)}`, {
+    const res = await authFetch(`${COURSE_BASE}/courses/enrollments/${enrollmentId}/mark-complete?contentType=${encodeURIComponent(contentType)}&contentTitle=${encodeURIComponent(contentTitle)}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      // headers: { 'Content-Type': 'application/json' },
     });
-    return await parseJson(res);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: null, success: false, message: 'Failed to mark content as completed' };
   }
@@ -406,9 +555,9 @@ export async function markContentComplete(enrollmentId, contentType, contentTitl
 // ASSIGNMENTS
 // ============================================================================
 export async function createAssignment(payload) {
-  const res = await fetch(`${COURSE_BASE}/assignments`, {
+  const res = await authFetch(`${COURSE_BASE}/assignments`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    // headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       courseId: payload.courseId,
       employeeId: payload.employeeId,
@@ -429,22 +578,22 @@ export async function getAssignments(filters = {}) {
     }
   });
   const url = `${COURSE_BASE}/assignments${params.toString() ? `?${params.toString()}` : ''}`;
-  return parseJson(await fetch(url));
+  return parseJson(await authFetch(url));
 }
 
 export async function getPendingAssignments() {
-  return parseJson(await fetch(`${COURSE_BASE}/assignments/pending`));
+  return parseJson(await authFetch(`${COURSE_BASE}/assignments/pending`));
 }
 
 export async function approveAssignment(id, approverId) {
-  const res = await fetch(`${COURSE_BASE}/assignments/${id}/approve?approverId=${approverId}`, {
+  const res = await authFetch(`${COURSE_BASE}/assignments/${id}/approve?approverId=${approverId}`, {
     method: 'PUT'
   });
   return parseJson(res);
 }
 
 export async function rejectAssignment(id, approverId) {
-  const res = await fetch(`${COURSE_BASE}/assignments/${id}/reject?approverId=${approverId}`, {
+  const res = await authFetch(`${COURSE_BASE}/assignments/${id}/reject?approverId=${approverId}`, {
     method: 'PUT'
   });
   return parseJson(res);
@@ -452,12 +601,12 @@ export async function rejectAssignment(id, approverId) {
 
 export async function createBulkAssignment(payload) {
   try {
-    const res = await fetch(`${COURSE_BASE}/assignments/bulk`, {
+    const res = await authFetch(`${COURSE_BASE}/assignments/bulk`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      // headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-    return await parseJson(res);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: null, success: false, message: 'Failed to create bulk assignments' };
   }
@@ -468,20 +617,23 @@ export async function createBulkAssignment(payload) {
 // ============================================================================
 export async function getPendingEnrollments() {
   try {
-    const res = await fetch(`${COURSE_BASE}/courses/enrollments/pending`);
-    return await parseJson(res);
+    const res = await authFetch(`${COURSE_BASE}/courses/enrollments/pending`);
+    console.log("Get pending enrollments:",res);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: [], success: false, message: 'Failed to load pending enrollments' };
   }
 }
 
 export async function approveEnrollment(id) {
-  const res = await fetch(`${COURSE_BASE}/courses/enrollments/${id}/approve`, { method: 'PUT' });
+  const res = await authFetch(`${COURSE_BASE}/courses/enrollments/${id}/approve`, { method: 'PUT' });
+  console.log("Get approvel enrollments:",res);
   return parseJson(res);
 }
 
 export async function rejectEnrollment(id) {
-  const res = await fetch(`${COURSE_BASE}/courses/enrollments/${id}/reject`, { method: 'PUT' });
+  const res = await authFetch(`${COURSE_BASE}/courses/enrollments/${id}/reject`, { method: 'PUT' });
+  console.log("Get rejected enrollments:",res);
   return parseJson(res);
 }
 
@@ -490,8 +642,9 @@ export async function rejectEnrollment(id) {
 // ============================================================================
 export async function getMaterials() {
   try {
-    const res = await fetch(`${MATERIAL_BASE}/api/materials`);
-    return await parseJson(res);
+    const res = await authFetch(`${MATERIAL_BASE}/api/materials`);
+    console.log("get all materials:", res);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: [], success: false, message: 'Failed to fetch materials' };
   }
@@ -499,11 +652,11 @@ export async function getMaterials() {
 
 export async function uploadMaterial(formData) {
   try {
-    const res = await fetch(`${MATERIAL_BASE}/api/materials/upload`, {
+    const res = await authFetch(`${MATERIAL_BASE}/api/materials/upload`, {
       method: "POST",
       body: formData,
     });
-    return await parseJson(res);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: null, success: false, message: 'Failed to upload material' };
   }
@@ -511,8 +664,8 @@ export async function uploadMaterial(formData) {
 
 export async function getMaterialById(id) {
   try {
-    const res = await fetch(`${MATERIAL_BASE}/api/materials/${id}`);
-    return await parseJson(res);
+    const res = await authFetch(`${MATERIAL_BASE}/api/materials/${id}`);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: null, success: false, message: 'Failed to fetch material' };
   }
@@ -520,11 +673,11 @@ export async function getMaterialById(id) {
 
 export async function updateMaterial(id, formData) {
   try {
-    const res = await fetch(`${MATERIAL_BASE}/api/materials/${id}`, {
+    const res = await authFetch(`${MATERIAL_BASE}/api/materials/${id}`, {
       method: 'PUT',
       body: formData,
     });
-    return await parseJson(res);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: null, success: false, message: 'Failed to update material' };
   }
@@ -532,8 +685,8 @@ export async function updateMaterial(id, formData) {
 
 export async function deleteMaterial(id) {
   try {
-    const res = await fetch(`${MATERIAL_BASE}/api/materials/${id}`, { method: 'DELETE' });
-    return await parseJson(res);
+    const res = await authFetch(`${MATERIAL_BASE}/api/materials/${id}`, { method: 'DELETE' });
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: null, success: false, message: 'Failed to delete material' };
   }
@@ -541,9 +694,9 @@ export async function deleteMaterial(id) {
 
 export async function downloadMaterial(id) {
   try {
-    const res = await fetch(`${MATERIAL_BASE}/api/materials/download/${id}`);
+    const res = await authFetch(`${MATERIAL_BASE}/api/materials/download/${id}`);
     if (!res.ok) throw new Error("Download failed");
-    return await res.blob();
+    return res.blob();
   } catch (error) {
     console.error("Download material error:", error);
     throw error;
@@ -556,8 +709,8 @@ export async function downloadMaterial(id) {
 export const certificateAPI = {
   getEmployeeCertificates: async (employeeId) => {
     try {
-      const res = await fetch(`${CERTIFICATE_BASE}/employee/${employeeId}`);
-      return await parseJson(res);
+      const res = await authFetch(`${CERTIFICATE_BASE}/employee/${employeeId}`);
+      return parseJson(res);
     } catch (error) {
       return { ok: false, body: null, data: [], success: false, message: 'Failed to fetch employee certificates' };
     }
@@ -565,8 +718,8 @@ export const certificateAPI = {
 
   downloadEmployeeCertificate: async (employeeId, certificationId) => {
     try {
-      const res = await fetch(`${CERTIFICATE_BASE}/employee/${employeeId}/download/${certificationId}`);
-      return await parseResponse(res);
+      const res = await authFetch(`${CERTIFICATE_BASE}/employee/${employeeId}/download/${certificationId}`);
+      return parseResponse(res);
     } catch (error) {
       return { ok: false, body: null, data: null, success: false, message: 'Failed to download certificate' };
     }
@@ -574,12 +727,12 @@ export const certificateAPI = {
 
   generateCertificate: async (certificateData, creatorId) => {
     try {
-      const res = await fetch(`${CERTIFICATE_BASE}/generate`, {
+      const res = await authFetch(`${CERTIFICATE_BASE}/generate`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Creator-Id': creatorId.toString() },
+        // headers: { 'Content-Type': 'application/json', 'X-Creator-Id': creatorId.toString() },
         body: JSON.stringify(certificateData)
       });
-      return await parseJson(res);
+      return parseJson(res);
     } catch (error) {
       return { ok: false, body: null, data: null, success: false, message: 'Failed to generate certificate' };
     }
@@ -592,8 +745,8 @@ export const certificateAPI = {
         if (value) params.append(key, value.toString());
       });
       const url = `${CERTIFICATE_BASE}/admin${params.toString() ? `?${params.toString()}` : ''}`;
-      const res = await fetch(url);
-      return await parseJson(res);
+      const res = await authFetch(url);
+      return parseJson(res);
     } catch (error) {
       return { ok: false, body: null, data: [], success: false, message: 'Failed to fetch certificates' };
     }
@@ -617,12 +770,12 @@ export async function sendEmail({ to, subject, message }) {
 // ============================================================================
 export async function submitFeedback(payload) {
   try {
-    const res = await fetch(`${FEEDBACK_BASE}/api/feedback`, {
+    const res = await authFetch(`${FEEDBACK_BASE}/api/feedback`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      // headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-    return await parseJson(res);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: null, success: false, message: 'Failed to submit feedback' };
   }
@@ -630,8 +783,8 @@ export async function submitFeedback(payload) {
 
 export async function getAllFeedbacks() {
   try {
-    const res = await fetch(`${FEEDBACK_BASE}/api/feedback/all`);
-    return await parseJson(res);
+    const res = await authFetch(`${FEEDBACK_BASE}/api/feedback/all`);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: [], success: false, message: 'Failed to fetch all feedbacks' };
   }
@@ -639,8 +792,8 @@ export async function getAllFeedbacks() {
 
 export async function getReceivedFeedbacks(employeeId) {
   try {
-    const res = await fetch(`${FEEDBACK_BASE}/api/feedback/received?employeeId=${employeeId}`);
-    return await parseJson(res);
+    const res = await authFetch(`${FEEDBACK_BASE}/api/feedback/received?employeeId=${employeeId}`);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: [], success: false, message: 'Failed to fetch received feedbacks' };
   }
@@ -648,8 +801,8 @@ export async function getReceivedFeedbacks(employeeId) {
 
 export async function getGivenFeedbacks(givenBy) {
   try {
-    const res = await fetch(`${FEEDBACK_BASE}/api/feedback/given?givenBy=${givenBy}`);
-    return await parseJson(res);
+    const res = await authFetch(`${FEEDBACK_BASE}/api/feedback/given?givenBy=${givenBy}`);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: [], success: false, message: 'Failed to fetch given feedbacks' };
   }
@@ -657,8 +810,8 @@ export async function getGivenFeedbacks(givenBy) {
 
 export async function getTeamFeedbackSummary(managerId) {
   try {
-    const res = await fetch(`${FEEDBACK_BASE}/api/feedback/team/${managerId}`);
-    return await parseJson(res);
+    const res = await authFetch(`${FEEDBACK_BASE}/api/feedback/team/${managerId}`);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: null, success: false, message: 'Failed to fetch team summary' };
   }
@@ -666,8 +819,8 @@ export async function getTeamFeedbackSummary(managerId) {
 
 export async function getFeedbacksForTarget(targetType, targetId) {
   try {
-    const res = await fetch(`${FEEDBACK_BASE}/api/feedback/${targetType}/${targetId}`);
-    return await parseJson(res);
+    const res = await authFetch(`${FEEDBACK_BASE}/api/feedback/${targetType}/${targetId}`);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: [], success: false, message: 'Failed to fetch feedbacks' };
   }
@@ -675,8 +828,8 @@ export async function getFeedbacksForTarget(targetType, targetId) {
 
 export async function getAverageRating(targetType, targetId) {
   try {
-    const res = await fetch(`${FEEDBACK_BASE}/api/feedback/average/${targetType}/${targetId}`);
-    return await parseJson(res);
+    const res = await authFetch(`${FEEDBACK_BASE}/api/feedback/average/${targetType}/${targetId}`);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: 0, success: false, message: 'Failed to fetch average rating' };
   }
@@ -684,8 +837,8 @@ export async function getAverageRating(targetType, targetId) {
 
 export async function getAdminStats() {
   try {
-    const res = await fetch(`${FEEDBACK_BASE}/api/feedback/admin/stats`);
-    return await parseJson(res);
+    const res = await authFetch(`${FEEDBACK_BASE}/api/feedback/admin/stats`);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: null, success: false, message: 'Failed to fetch admin stats' };
   }
@@ -693,10 +846,10 @@ export async function getAdminStats() {
 
 export async function flagFeedback(feedbackId) {
   try {
-    const res = await fetch(`${FEEDBACK_BASE}/api/feedback/${feedbackId}/flag`, {
+    const res = await authFetch(`${FEEDBACK_BASE}/api/feedback/${feedbackId}/flag`, {
       method: 'PUT'
     });
-    return await parseJson(res);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: null, success: false, message: 'Failed to flag feedback' };
   }
@@ -704,8 +857,8 @@ export async function flagFeedback(feedbackId) {
 
 export async function getExamsForFeedback() {
   try {
-    const res = await fetch(`${EXAM_BASE}`);
-    return await parseJson(res);
+    const res = await authFetch(`${EXAM_BASE}`);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: [], success: false, message: 'Failed to fetch exams' };
   }
@@ -716,8 +869,8 @@ export async function getExamsForFeedback() {
 // ============================================================================
 export async function getExams() {
   try {
-    const res = await fetch(`${EXAM_BASE}`);
-    return await parseJson(res);
+    const res = await authFetch(`${EXAM_BASE}`);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: [], success: false, message: 'Failed to fetch exams' };
   }
@@ -725,8 +878,8 @@ export async function getExams() {
 
 export async function getExamsForEmployee(employeeId) {
   try {
-    const res = await fetch(`${EXAM_BASE}/employee/${employeeId}`);
-    return await parseJson(res);
+    const res = await authFetch(`${EXAM_BASE}/employee/${employeeId}`);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: [], success: false, message: 'Failed to fetch employee exams' };
   }
@@ -734,8 +887,8 @@ export async function getExamsForEmployee(employeeId) {
 
 export async function getExamById(id) {
   try {
-    const res = await fetch(`${EXAM_BASE}/${id}`);
-    return await parseJson(res);
+    const res = await authFetch(`${EXAM_BASE}/${id}`);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: null, success: false, message: 'Failed to fetch exam' };
   }
@@ -743,8 +896,8 @@ export async function getExamById(id) {
 
 export async function getQuestions(examId) {
   try {
-    const res = await fetch(`${EXAM_BASE}/${examId}/questions`);
-    return await parseJson(res);
+    const res = await authFetch(`${EXAM_BASE}/${examId}/questions`);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: [], success: false, message: 'Failed to fetch questions' };
   }
@@ -752,12 +905,12 @@ export async function getQuestions(examId) {
 
 export async function createExam(payload) {
   try {
-    const res = await fetch(`${EXAM_BASE}`, {
+    const res = await authFetch(`${EXAM_BASE}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      // headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-    return await parseJson(res);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: null, success: false, message: 'Failed to create exam' };
   }
@@ -765,12 +918,12 @@ export async function createExam(payload) {
 
 export async function addQuestion(examId, payload) {
   try {
-    const res = await fetch(`${EXAM_BASE}/${examId}/questions`, {
+    const res = await authFetch(`${EXAM_BASE}/${examId}/questions`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      // headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-    return await parseJson(res);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: null, success: false, message: 'Failed to add question' };
   }
@@ -778,8 +931,8 @@ export async function addQuestion(examId, payload) {
 
 export async function deleteExam(id) {
   try {
-    const res = await fetch(`${EXAM_BASE}/${id}`, { method: 'DELETE' });
-    return await parseJson(res);
+    const res = await authFetch(`${EXAM_BASE}/${id}`, { method: 'DELETE' });
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: null, success: false, message: 'Failed to delete exam' };
   }
@@ -787,12 +940,12 @@ export async function deleteExam(id) {
 
 export async function updateExam(id, payload) {
   try {
-    const res = await fetch(`${EXAM_BASE}/${id}`, {
+    const res = await authFetch(`${EXAM_BASE}/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      // headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-    return await parseJson(res);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: null, success: false, message: 'Failed to update exam' };
   }
@@ -800,8 +953,8 @@ export async function updateExam(id, payload) {
 
 export async function checkExamEligibility(examId, employeeId) {
   try {
-    const res = await fetch(`${EXAM_BASE}/${examId}/eligibility/${employeeId}`);
-    return await parseJson(res);
+    const res = await authFetch(`${EXAM_BASE}/${examId}/eligibility/${employeeId}`);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: { isEligible: false }, success: false, message: 'Failed to check eligibility' };
   }
@@ -809,10 +962,10 @@ export async function checkExamEligibility(examId, employeeId) {
 
 export async function startAttempt(examId, employeeId) {
   try {
-    const res = await fetch(`${EXAM_BASE}/${examId}/start?employeeId=${employeeId}`, {
+    const res = await authFetch(`${EXAM_BASE}/${examId}/start?employeeId=${employeeId}`, {
       method: 'POST',
     });
-    return await parseJson(res);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: null, success: false, message: 'Failed to start attempt' };
   }
@@ -820,12 +973,12 @@ export async function startAttempt(examId, employeeId) {
 
 export async function submitAttempt(examId, payload) {
   try {
-    const res = await fetch(`${EXAM_BASE}/${examId}/submit`, {
+    const res = await authFetch(`${EXAM_BASE}/${examId}/submit`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      // headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-    return await parseJson(res);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: null, success: false, message: 'Failed to submit attempt' };
   }
@@ -833,8 +986,8 @@ export async function submitAttempt(examId, payload) {
 
 export async function getEmployeeResults(employeeId) {
   try {
-    const res = await fetch(`${EXAM_BASE}/results/employee/${employeeId}`);
-    return await parseJson(res);
+    const res = await authFetch(`${EXAM_BASE}/results/employee/${employeeId}`);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: [], success: false, message: 'Failed to fetch results' };
   }
@@ -842,8 +995,8 @@ export async function getEmployeeResults(employeeId) {
 
 export async function getAllResults() {
   try {
-    const res = await fetch(`${EXAM_BASE}/results`);
-    return await parseJson(res);
+    const res = await authFetch(`${EXAM_BASE}/results`);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: [], success: false, message: 'Failed to fetch results' };
   }
@@ -854,8 +1007,8 @@ export async function getAnalytics(filters = {}) {
     let url = `http://localhost:8086/api/analytics`;
     if (filters.employeeId) url = `${url}/employee/${filters.employeeId}`;
     else if (filters.examId) url = `${url}/exam/${filters.examId}`;
-    const res = await fetch(url);
-    return await parseJson(res);
+    const res = await authFetch(url);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: [], success: false, message: 'Failed to fetch analytics' };
   }
@@ -863,8 +1016,8 @@ export async function getAnalytics(filters = {}) {
 
 export async function getTotalEmployeesCount() {
   try {
-    const res = await fetch(`${EXAM_BASE}/employees/count`);
-    return await parseJson(res);
+    const res = await authFetch(`${EXAM_BASE}/employees/count`);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: 0, success: false, message: 'Failed to fetch count' };
   }
@@ -872,8 +1025,8 @@ export async function getTotalEmployeesCount() {
 
 export async function getPendingExamsCount(employeeId) {
   try {
-    const res = await fetch(`${EXAM_BASE}/pending-count/${employeeId}`);
-    return await parseJson(res);
+    const res = await authFetch(`${EXAM_BASE}/pending-count/${employeeId}`);
+    return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: 0, success: false, message: 'Failed to fetch pending exams count' };
   }

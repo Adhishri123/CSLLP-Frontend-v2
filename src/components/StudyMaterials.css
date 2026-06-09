@@ -456,3 +456,34 @@ video {
 .study-card .btn-group-grid {
   margin-top: auto;
 }
+
+.search-input {
+  width: 900px;
+  height: 42px;
+}
+
+.sort-select {
+  width: 180px;
+  height: 42px;
+}
+
+.action-btn {
+  height: 42px;
+  min-width: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+width: 500px
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .search-input,
+  .sort-select {
+    width: 100%;
+  }
+
+  .action-btn {
+    width: 100%;
+  }
+}
