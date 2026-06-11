@@ -27,7 +27,7 @@ export default function AdminDashboard({ user }) {
       
       if (reportRes.success) {
         const reportData = reportRes.data;
-        // console.log("📊 Course Report Response:", reportData.data);
+        console.log("📊 Course Report Data:", reportData);
         setStats(prev => ({
           ...prev,
           totalCourses: reportData.totalCourses || 0,

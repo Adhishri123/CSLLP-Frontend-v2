@@ -170,7 +170,8 @@ export default function Certifications({ user }) {
       
       console.log('📦 Certificate API Response:', response);
       
-      if (response && response.success && response.data) {
+      // if (response && response.success && response.data) {
+      if (response?.success && Array.isArray(response.data)) {
         console.log('✅ Certificates received:', response.data);
         
         // First, create basic certificate objects
@@ -197,7 +198,8 @@ export default function Certifications({ user }) {
         const enrichedCertificates = await enrichCertificateData(basicCertificates);
         
         console.log('🎉 Final enriched certificates:', enrichedCertificates);
-        setCertificates(enrichedCertificates);
+        // setCertificates(enrichedCertificates);
+        setCertificates(response.data);
 
         // Check if we're still getting placeholder names
         const hasPlaceholderNames = enrichedCertificates.some(cert => 

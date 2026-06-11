@@ -49,7 +49,7 @@ export default function Feedback({ user }) {
       
       if (isAdmin || isManager) {
         const usersResponse = await getUsers();
-        if (usersResponse.ok) {
+        if (usersResponse.success) {
           console.log('Users loaded:', usersResponse.data?.length);
           setUsers(usersResponse.data || []);
         } else {
@@ -58,7 +58,7 @@ export default function Feedback({ user }) {
       }
 
       const coursesResponse = await getCourses();
-      if (coursesResponse.ok) {
+      if (coursesResponse.success) {
         console.log('Courses loaded:', coursesResponse.data?.length);
         setCourses(coursesResponse.data || []);
       } else {
@@ -66,7 +66,7 @@ export default function Feedback({ user }) {
       }
 
       const examsResponse = await getExamsForFeedback();
-      if (examsResponse.ok) {
+      if (examsResponse.success) {
         console.log('Exams loaded:', examsResponse.data?.length);
         setExams(examsResponse.data || []);
       } else {
@@ -90,14 +90,14 @@ export default function Feedback({ user }) {
       switch (activeTab) {
         case 'received':
           response = await getReceivedFeedbacks(user.id);
-          if (response.ok) {
+          if (response.success) {
             setFeedbacks(response.data || []);
           }
           break;
         
         case 'given':
           response = await getGivenFeedbacks(user.id);
-          if (response.ok) {
+          if (response.success) {
             setFeedbacks(response.data || []);
           }
           break;
@@ -105,7 +105,7 @@ export default function Feedback({ user }) {
         case 'all':
           if (isAdmin) {
             response = await getAllFeedbacks();
-            if (response.ok) {
+            if (response.success) {
               setFeedbacks(response.data || []);
             }
           }
@@ -114,7 +114,7 @@ export default function Feedback({ user }) {
         case 'team':
           if (isManager) {
             response = await getTeamFeedbackSummary(user.id);
-            if (response.ok && response.data) {
+            if (response.success) {
               setTeamSummary(response.data);
               setFeedbacks(response.data.teamFeedbacks || []);
             }
@@ -124,7 +124,7 @@ export default function Feedback({ user }) {
         case 'target':
           if (targetId) {
             response = await getFeedbacksForTarget(targetType, targetId);
-            if (response.ok) {
+            if (response.success) {
               setFeedbacks(response.data || []);
             }
           }
@@ -133,7 +133,7 @@ export default function Feedback({ user }) {
         case 'average':
           if (targetId) {
             response = await getAverageRating(targetType, targetId);
-            if (response.ok) {
+            if (response.success) {
               setAverageRating(response.data || 0);
             }
           }
@@ -142,7 +142,7 @@ export default function Feedback({ user }) {
         case 'admin-stats':
           if (isAdmin) {
             response = await getAdminStats();
-            if (response.ok) {
+            if (response.success) {
               setAdminStats(response.data);
             }
           }
@@ -201,7 +201,7 @@ export default function Feedback({ user }) {
 
       const response = await submitFeedback(requestBody);
       
-      if (response.ok) {
+      if (response.success) {
         await loadData();
         setShowFeedbackModal(false);
         alert("Feedback submitted successfully!");
@@ -219,7 +219,7 @@ export default function Feedback({ user }) {
     
     try {
       const response = await flagFeedback(id);
-      if (response.ok) {
+      if (response.success) {
         await loadData();
         alert('Feedback flagged successfully!');
       } else {

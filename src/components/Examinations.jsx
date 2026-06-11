@@ -32,42 +32,58 @@ export default function Examinations({ user }) {
     setError("");
     try {
       if (activeTab === "available") {
-        let examData;
+        let examData = [];
         if (isAdminOrManager) {
-          examData = await getExams();
-        } else {
-          examData = await getExamsForEmployee(user.id);
+           examData = await getExams();
+           console.log("Admin Exams:", examData);
+           examData = examData?.data || [];
+        } 
+        else {
+           examData = await getExamsForEmployee(user.id);
           
           // Enhanced debugging
           console.log('🔍 Raw exam data from backend:', examData);
           
-          examData = examData.map(exam => {
-            console.log(`🔍 Processing exam: ${exam.title}`, {
-              isEligible: exam.isEligible,
-              courseProgress: exam.courseProgress,
-              status: exam.status,
-              eligibilityMessage: exam.eligibilityMessage
-            });
+          // Extract array from response
+          examData = examData?.data || [];
+          console.log("🔍 Exam Array:", examData);
+
+          // examData = examData.map(exam => {
+          //   console.log(`🔍 Processing exam: ${exam.title}`, {
+          //     isEligible: exam.isEligible,
+          //     courseProgress: exam.courseProgress,
+          //     status: exam.status,
+          //     eligibilityMessage: exam.eligibilityMessage
+          //   });
             
-            return {
-              ...exam,
-              isEligible: exam.isEligible !== undefined ? exam.isEligible : false,
-              courseProgress: exam.courseProgress !== undefined ? exam.courseProgress : 0,
-              status: exam.status || 'LOCKED',
-              eligibilityMessage: exam.eligibilityMessage || "Complete course to unlock exam"
-            };
-          });
+          //   return {
+          //     ...exam,
+          //     isEligible: exam.isEligible !== undefined ? exam.isEligible : false,
+          //     courseProgress: exam.courseProgress !== undefined ? exam.courseProgress : 0,
+          //     status: exam.status || 'LOCKED',
+          //     eligibilityMessage: exam.eligibilityMessage || "Complete course to unlock exam"
+          //   };
+          // });
+
+          examData = examData.map((exam) => ({
+            ...exam,
+            isEligible: exam.isEligible !== undefined? exam.isEligible : false,
+            courseProgress: exam.courseProgress !== undefined ? exam.courseProgress : 0,
+            status:exam.status || "LOCKED",
+            eligibilityMessage: exam.eligibilityMessage || "Complete course to unlock exam",
+          }));
 
           console.log('🔍 Processed exam data for display:', examData);
         }
-        setExams(examData || []);
+        setExams(examData);
       } else if (activeTab === "results") {
         if (isAdminOrManager) {
           navigate('/reports');
           return;
         } else {
           const resultsData = await getEmployeeResults(user.id);
-          setResults(resultsData || []);
+          console.log("Get exam result:",resultsData);
+          setResults(resultsData?.data || []);
         }
       }
     } catch (err) {

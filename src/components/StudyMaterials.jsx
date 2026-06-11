@@ -605,7 +605,7 @@ async function fetchCourses() {
         console.log("🔄 Updating material with ID:", editingMaterial.id);
         res = await updateMaterial(editingMaterial.id, formData);
         
-        if (res.ok && res.success) {
+        if (res.success) {
           showSuccess("Material Updated", "✅ Material updated successfully!");
           await fetchMaterials();
           resetForm();

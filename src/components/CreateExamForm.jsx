@@ -136,7 +136,8 @@ export default function CreateExamForm() {
     }
 
     try {
-      const creatorId = localStorage.getItem("userId") || 2;
+      const creatorId = localStorage.getItem("userId") || 3;
+      console.log("Creator Id:", creatorId);
 
       const examPayload = {
         ...examData,
@@ -146,6 +147,14 @@ export default function CreateExamForm() {
       };
 
       const createdExam = await createExam(examPayload, creatorId);
+      console.log("Exam response :", createdExam);
+      // if (!createdExam.success) {
+      //   throw new Error(createdExam.message);
+      // }
+
+      // const createExam = createdExam.data;
+      const examId = createdExam.data.id;
+      console.log("Created Exam ID:", examId);
       setExamCreated(createdExam);
 
       for (const q of questions) {

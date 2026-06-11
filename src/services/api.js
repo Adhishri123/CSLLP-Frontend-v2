@@ -729,7 +729,7 @@ export const certificateAPI = {
     try {
       const res = await authFetch(`${CERTIFICATE_BASE}/generate`, {
         method: 'POST',
-        // headers: { 'Content-Type': 'application/json', 'X-Creator-Id': creatorId.toString() },
+        headers: { 'Content-Type': 'application/json', 'X-Creator-Id': creatorId.toString() },
         body: JSON.stringify(certificateData)
       });
       return parseJson(res);
@@ -903,11 +903,11 @@ export async function getQuestions(examId) {
   }
 }
 
-export async function createExam(payload) {
+export async function createExam(payload, creatorId) {
   try {
     const res = await authFetch(`${EXAM_BASE}`, {
       method: 'POST',
-      // headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Creator-Id': creatorId.toString() },
       body: JSON.stringify(payload),
     });
     return parseJson(res);
