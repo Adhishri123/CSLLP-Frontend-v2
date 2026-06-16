@@ -251,7 +251,8 @@ export default function Feedback({ user }) {
         return exam ? `[${exam.id}] ${exam.title || `Exam ${exam.id}`}` : `Exam ${targetId}`;
       case 'USER':
         const user = users.find(u => u.id == targetId);
-        return user ? `[${user.id}] ${user.firstName} ${user.lastName}` : `User ${targetId}`;
+        // return user ? `[${user.id}] ${user.firstName} ${user.lastName}` : `User ${targetId}`;        
+        return user ? `[${user.id}] ${user.fullName}` : `User ${targetId}`;
       default:
         return `${targetType} ${targetId}`;
     }
@@ -393,7 +394,8 @@ export default function Feedback({ user }) {
                         <option value="">Select User</option>
                         {users.map(user => (
                           <option key={user.id} value={user.id}>
-                            [{user.id}] {user.firstName} {user.lastName} ({user.email})
+                            {/* [{user.id}] {user.firstName} {user.lastName} ({user.email}) */}
+                            [{user.id}] {user.fullName} ({user.email})
                           </option>
                         ))}
                       </select>
@@ -834,7 +836,8 @@ function SubmitFeedbackModal({ onClose, onSubmit, loading, users, courses, exams
         return exam ? `[${exam.id}] ${exam.title || `Exam ${exam.id}`}` : '';
       case 'USER':
         const user = users.find(u => u.id == formData.targetId);
-        return user ? `[${user.id}] ${user.firstName} ${user.lastName}` : '';
+        // return user ? `[${user.id}] ${user.firstName} ${user.lastName}` : '';
+        return user ? `[${user.id}] ${user.fullName}` : '';
       default:
         return '';
     }
@@ -883,7 +886,8 @@ function SubmitFeedbackModal({ onClose, onSubmit, loading, users, courses, exams
                         <option value="">{users.length === 0 ? 'Loading users...' : 'Choose a user...'}</option>
                         {users.map(user => (
                           <option key={user.id} value={user.id}>
-                            [{user.id}] {user.firstName} {user.lastName} ({user.email})
+                            {/* [{user.id}] {user.firstName} {user.lastName} ({user.email}) */}
+                            [{user.id}] {user.fullName} ({user.email})
                           </option>
                         ))}
                       </select>

@@ -2010,8 +2010,8 @@ function AssignCourseTab({ user, showSuccess, showError }) {
               {/* Employee Selection Section */}
               <div className="mb-4 employee-dropdown-container">
                 <label className="form-label fw-bold">👥 Select Employees
-                  <span class="text-danger">*</span>
-            </label>
+                  <span className="text-danger">*</span>
+                </label>
 
                 <div className="form-text mb-2">
                   Click to select employees from the dropdown
@@ -2145,7 +2145,7 @@ function AssignCourseTab({ user, showSuccess, showError }) {
               {/* Course Selection Section */}
               <div className="mb-4 course-dropdown-container">
                 <label className="form-label fw-bold">📚 Select Courses
-                  <span class="text-danger">*</span>
+                  <span className="text-danger">*</span>
                 </label>
                 <div className="form-text mb-2">
                   Click to select courses from the dropdown

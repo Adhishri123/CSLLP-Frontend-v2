@@ -33,27 +33,28 @@ export default function CreateUserModal({ creator, onClose, onCreated }) {
 
   const update = (k, v) => setForm(s => ({ ...s, [k]: v }));
 
-  const splitName = (full) => {
-    const parts = (full || '').trim().split(/\s+/);
-    const first = parts.shift() || '';
-    const last = parts.join(' ') || '';
-    return { first, last };
-  };
+  // const splitName = (full) => {
+  //   const parts = (full || '').trim().split(/\s+/);
+  //   const first = parts.shift() || '';
+  //   const last = parts.join(' ') || '';
+  //   return { first, last };
+  // };
 
   async function submit(e) {
     e.preventDefault();
     setError(null);
 
-    const { first, last } = splitName(form.fullName);
-    if (!first) return setError('Full name is required');
+    // const { first, last } = splitName(form.fullName);
+    if (!form.fullName) return setError('Full name is required');
     if (!form.email) return setError('Email is required');
     if (!form.password) form.password = Math.random().toString(36).slice(-8);
 
     const payload = {
       email: form.email,
       password: form.password,
-      firstName: first,
-      lastName: last,
+      // firstName: first,
+      // lastName: last,
+      fullName: form.fullName,
       role: form.role,
       managerId:
         form.role === 'EMPLOYEE'
@@ -138,7 +139,8 @@ export default function CreateUserModal({ creator, onClose, onCreated }) {
                 <option value="">Select Manager</option>
                 {managers.map(m => (
                   <option key={m.id} value={m.id}>
-                    {m.firstName} {m.lastName} ({m.email})
+                    {/* {m.firstName} {m.lastName} ({m.email}) */}
+                    {m.fullName} ({m.email})
                   </option>
                 ))}
               </select>

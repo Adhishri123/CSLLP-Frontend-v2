@@ -4,8 +4,9 @@ import { register, fetchManagers } from '../api';
 export default function Register({ creator }){
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  // const [firstName, setFirstName] = useState('');
+  // const [lastName, setLastName] = useState('');
+  const [fullName, setFullName] = useState('');
   const [roles, setRoles] = useState(['EMPLOYEE']);
   const [managerId, setManagerId] = useState('');
   const [managers, setManagers] = useState([]);
@@ -15,7 +16,8 @@ export default function Register({ creator }){
 
   function submit(e){
     e.preventDefault();
-    const body = { username, password, firstName, lastName, roles, managerId: managerId || null };
+    // const body = { username, password, firstName, lastName, roles, managerId: managerId || null };
+    const body = { username, password, fullName, roles, managerId: managerId || null };
     register(body, creator ? creator.id : null, creator ? creator.role : 'ADMIN')
       .then(res => res.body && setMsg(res.body.success ? 'Created: ' + res.body.data.username : 'Error: ' + res.body.message))
       .catch(err => setMsg(String(err)));
@@ -33,10 +35,12 @@ export default function Register({ creator }){
           <input value={password} onChange={e=>setPassword(e.target.value)} />
         </div>
       </div>
-      <label>First Name</label>
+      {/* <label>First Name</label>
       <input value={firstName} onChange={e=>setFirstName(e.target.value)} />
       <label>Last Name</label>
-      <input value={lastName} onChange={e=>setLastName(e.target.value)} />
+      <input value={lastName} onChange={e=>setLastName(e.target.value)} /> */}
+      <label>Full Name</label>
+      <input value={fullName} onChange={e=>setFullName(e.target.value)} />
       <label>Role</label>
       <select value={roles[0]} onChange={e=>setRoles([e.target.value])}>
         <option>EMPLOYEE</option>
@@ -47,7 +51,8 @@ export default function Register({ creator }){
       <label>Manager (optional)</label>
       <select value={managerId} onChange={e=>setManagerId(e.target.value)}>
         <option value="">-- select manager --</option>
-        {managers.map(m => <option key={m.id} value={m.id}>{m.firstName} ({m.username})</option>)}
+        {/* {managers.map(m => <option key={m.id} value={m.id}>{m.firstName} ({m.username})</option>)} */}
+        {managers.map(m => <option key={m.id} value={m.id}>{m.fullName} ({m.username})</option>)}
       </select>
       <button type="submit">Register</button>
       {msg && <div><small>{msg}</small></div>}

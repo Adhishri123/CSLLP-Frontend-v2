@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import AdminDashboard from "./components/AdminDashboard";
 import ManagerDashboard from "./components/ManagerDashboard";
 import EmployeeDashboard from "./components/EmployeeDashboard";
+import HrDashboard from "./components/HrDashboard";
 
 // Course Components
 // Course Components
@@ -62,6 +63,8 @@ export default function App() {
       return <AdminDashboard user={user} />;
     } else if (user.role === "MANAGER") {
       return <ManagerDashboard user={user} />;
+    }else if (user.role === "HR") {
+      return <HrDashboard user={user} />;
     } else {
       return <EmployeeDashboard user={user} />;
     }
@@ -91,9 +94,9 @@ export default function App() {
           
           {/* 🆕 UPDATED: User Courses - Admin Only */}
           <Route
-            path="/user-courses"
+            path="/user-courses" 
             element={
-              user.role === "ADMIN"
+              user.role === "ADMIN" || user.role === "MANAGER"
                 ? <UserCourses user={user} />
                 : <Navigate to="/" replace />
             }
@@ -126,7 +129,7 @@ export default function App() {
           <Route
             path="/user-management"
             element={
-              user.role === "ADMIN"
+              user.role === "ADMIN" || user.role === 'HR'
                 ? <UserManagement user={user} />
                 : <Navigate to="/" replace />
             }

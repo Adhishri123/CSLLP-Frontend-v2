@@ -28,23 +28,31 @@ export default function AdminDashboard({ user }) {
       if (reportRes.success) {
         const reportData = reportRes.data;
         console.log("📊 Course Report Data:", reportData);
+        // setStats(prev => ({
+        //   ...prev,
+        //   totalCourses: reportData.totalCourses || 0,
+        //   completedCourses: reportData.completedEnrollments || 0,
+        //   pendingApprovals: reportData.pendingApprovals || 0,
+        //   activeEnrollments: reportData.activeEnrollments || 0
+        // }));
         setStats(prev => ({
           ...prev,
           totalCourses: reportData.totalCourses || 0,
-          completedCourses: reportData.completedEnrollments || 0,
+          completedCourses: reportData.completedCourses || 0,
           pendingApprovals: reportData.pendingApprovals || 0,
           activeEnrollments: reportData.activeEnrollments || 0
         }));
       }
 
-      // Load total employees, managers, and total users
+      // Load total employees, managers, hrs and total users
       const usersRes = await getUsers();
       console.log("📊 User Response:", usersRes.data);
       if (usersRes.success) {
         const users = usersRes.data || [];
         const employees = users.filter(u => u.role === 'EMPLOYEE');
         const managers = users.filter(u => u.role === 'MANAGER');
-        const totalUsers = employees.length + managers.length;
+        const hrs = users.filter(u => u.role === 'HR');
+        const totalUsers = employees.length + managers.length + hrs.length;
         
         setStats(prev => ({ 
           ...prev, 
@@ -176,7 +184,7 @@ export default function AdminDashboard({ user }) {
               <div>
                 <h6 className="card-title text-muted mb-2">Total Users</h6>
                 <h3 className="fw-bold text-info">{stats.totalUsers}</h3>
-                <small className="text-muted">Employees + Managers</small>
+                <small className="text-muted">Employees + Managers + HRs</small>
               </div>
               <div className="bg-info bg-opacity-10 p-3 rounded">
                 <span style={{ fontSize: '1.5rem' }} className="text-info">👥</span>

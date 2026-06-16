@@ -94,8 +94,15 @@ export default function Certifications({ user }) {
           const nameFields = ['fullName', 'name', 'employeeName', 'username', 'firstName', 'lastName'];
           for (const field of nameFields) {
             if (employeeData[field] && employeeData[field] !== 'null' && employeeData[field].trim() !== '') {
-              if (field === 'firstName' && employeeData.lastName) {
-                employeeName = `${employeeData.firstName} ${employeeData.lastName}`;
+              // if (field === 'firstName' && employeeData.lastName) {
+              //   employeeName = `${employeeData.firstName} ${employeeData.lastName}`;
+              // } else if (field === 'firstName' && !employeeData.lastName) {
+              //   employeeName = employeeData.firstName;
+              // } else {
+              //   employeeName = employeeData[field];
+              // }
+              if (field === 'fullName') {
+                employeeName = `${employeeData.fullName}`;
               } else if (field === 'firstName' && !employeeData.lastName) {
                 employeeName = employeeData.firstName;
               } else {

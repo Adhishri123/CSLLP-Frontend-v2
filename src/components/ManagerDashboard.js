@@ -8,8 +8,9 @@ export default function ManagerDashboard({ user }) {
   const [form, setForm] = useState({ 
     email: '', 
     password: '', 
-    firstName: '', 
-    lastName: '', 
+    // firstName: '', 
+    // lastName: '', 
+    fullName: '',
     role: 'EMPLOYEE' 
   });
   const [msg, setMsg] = useState(null);
@@ -27,8 +28,9 @@ export default function ManagerDashboard({ user }) {
       setFilteredTeam(team);
     } else {
       const filtered = team.filter(member => 
-        member.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        member.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        // member.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        // member.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        member.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         member.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         member.role?.toLowerCase().includes(searchTerm.toLowerCase())
       );
@@ -58,8 +60,9 @@ export default function ManagerDashboard({ user }) {
     const payload = { 
       email: form.email, 
       password: form.password, 
-      firstName: form.firstName, 
-      lastName: form.lastName, 
+      // firstName: form.firstName, 
+      // lastName: form.lastName, 
+      fullName: form.fullName, 
       role: 'EMPLOYEE' 
     };
     
@@ -74,7 +77,8 @@ export default function ManagerDashboard({ user }) {
     setShowSuccessPopup(true);
     
     // Reset form and close modal
-    setForm({ email: '', password: '', firstName: '', lastName: '', role: 'EMPLOYEE' });
+    // setForm({ email: '', password: '', firstName: '', lastName: '', role: 'EMPLOYEE' });
+    setForm({ email: '', password: '', fullName: '', role: 'EMPLOYEE' });
     setShowModal(false);
     setMsg(null);
     
@@ -88,7 +92,8 @@ export default function ManagerDashboard({ user }) {
   }
 
   const resetForm = () => {
-    setForm({ email: '', password: '', firstName: '', lastName: '', role: 'EMPLOYEE' });
+    // setForm({ email: '', password: '', firstName: '', lastName: '', role: 'EMPLOYEE' });
+    setForm({ email: '', password: '', fullName: '', role: 'EMPLOYEE' });
     setMsg(null);
     setShowModal(false);
   };
@@ -121,10 +126,12 @@ export default function ManagerDashboard({ user }) {
           </div>
           <div style={styles.userInfo}>
             <div style={styles.userAvatar}>
-              {user.firstName?.charAt(0)}{user.lastName?.charAt(0)}
+              {/* {user.firstName?.charAt(0)}{user.lastName?.charAt(0)} */}
+              {user.fullName?.charAt(0)}
             </div>
             <div style={styles.userDetails}>
-              <span style={styles.userName}>{user.firstName} {user.lastName}</span>
+              {/* <span style={styles.userName}>{user.firstName} {user.lastName}</span> */}
+              <span style={styles.userName}>{user.fullName}</span>
               <span style={styles.userRole}>Manager</span>
             </div>
           </div>
@@ -205,11 +212,13 @@ export default function ManagerDashboard({ user }) {
                     <div style={styles.tableCell}>
                       <div style={styles.employeeInfo}>
                         <div style={styles.avatar}>
-                          {member.firstName?.charAt(0)}{member.lastName?.charAt(0)}
+                          {/* {member.firstName?.charAt(0)}{member.lastName?.charAt(0)} */}
+                          {member.fullName?.charAt(0)}
                         </div>
                         <div style={styles.employeeDetails}>
                           <div style={styles.employeeName}>
-                            {member.firstName} {member.lastName}
+                            {/* {member.firstName} {member.lastName} */}
+                            {member.fullName}
                           </div>
                           <div style={styles.employeeId}>ID: {member.id}</div>
                         </div>
@@ -286,16 +295,23 @@ export default function ManagerDashboard({ user }) {
               <div style={styles.formGrid}>
                 <div style={styles.formGroup}>
                   <label style={styles.label}>First Name *</label>
-                  <input
+                  {/* <input
                     style={styles.input}
                     placeholder="Enter first name"
                     value={form.firstName}
                     onChange={e => setForm({ ...form, firstName: e.target.value })}
                     required
+                  /> */}
+                  <input
+                    style={styles.input}
+                    placeholder="Enter full name"
+                    value={form.fullName}
+                    onChange={e => setForm({ ...form, fullName: e.target.value })}
+                    required
                   />
                 </div>
                 
-                <div style={styles.formGroup}>
+                {/* <div style={styles.formGroup}>
                   <label style={styles.label}>Last Name *</label>
                   <input
                     style={styles.input}
@@ -304,7 +320,7 @@ export default function ManagerDashboard({ user }) {
                     onChange={e => setForm({ ...form, lastName: e.target.value })}
                     required
                   />
-                </div>
+                </div> */}
               </div>
 
               <div style={styles.formGroup}>

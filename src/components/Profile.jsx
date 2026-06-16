@@ -17,8 +17,9 @@ export default function Profile() {
   
   // Form states
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
+    // firstName: "",
+    // lastName: "",
+    fullName: "",
     email: "",
     password: "",
     confirmPassword: ""
@@ -52,8 +53,9 @@ export default function Profile() {
         console.log("User Data of profile:", userData)
         setUser(userData);
         setFormData({
-          firstName: userData.firstName || "",
-          lastName: userData.lastName || "",
+          // firstName: userData.firstName || "",
+          // lastName: userData.lastName || "",
+          fullName: userData.fullName || "",
           email: userData.email || "",
           password: "",
           confirmPassword: ""
@@ -93,8 +95,9 @@ export default function Profile() {
 
     try {
       const updateData = {
-        firstName: formData.firstName,
-        lastName: formData.lastName
+        // firstName: formData.firstName,
+        // lastName: formData.lastName
+        fullName: formData.fullName
       };
 
       // Only include password if provided
@@ -111,8 +114,9 @@ export default function Profile() {
         // Update local storage with new user data
         const updatedCurrentUser = {
           ...currentUser,
-          firstName: updatedUser.firstName,
-          lastName: updatedUser.lastName,
+          // firstName: updatedUser.firstName,
+          // lastName: updatedUser.lastName,
+          fullName: updatedUser.fullName,
           email: updatedUser.email
         };
         localStorage.setItem('csllp_user', JSON.stringify(updatedCurrentUser));
@@ -201,9 +205,11 @@ export default function Profile() {
 
   const getInitials = (user) => {
     if (user.profilePhotoUrl) return null;
-    const first = user.firstName ? user.firstName.charAt(0).toUpperCase() : '';
-    const last = user.lastName ? user.lastName.charAt(0).toUpperCase() : '';
-    return first + last;
+    // const first = user.firstName ? user.firstName.charAt(0).toUpperCase() : '';
+    // const last = user.lastName ? user.lastName.charAt(0).toUpperCase() : '';
+    // return first + last;
+    const full = user.fullName ? user.fullName.charAt(0).toUpperCase() : '';
+    return full;
   };
 
   if (loading) {
@@ -281,7 +287,8 @@ export default function Profile() {
             </div>
             
             <div className="profile-info">
-              <h2 className="profile-name">{user.firstName} {user.lastName}</h2>
+              {/* <h2 className="profile-name">{user.firstName} {user.lastName}</h2> */}
+              <h2 className="profile-name">{user.fullName}</h2>
               <p className="profile-email">{user.email}</p>
               <div className="profile-badges">
                 {getRoleBadge(user.role)}
@@ -305,13 +312,17 @@ export default function Profile() {
               <div className="info-grid">
                 <div className="info-card">
                   <h4>Basic Information</h4>
-                  <div className="info-item">
+                  {/* <div className="info-item">
                     <label>First Name</label>
                     <p>{user.firstName}</p>
                   </div>
                   <div className="info-item">
                     <label>Last Name</label>
                     <p>{user.lastName || 'Not provided'}</p>
+                  </div> */}
+                  <div className="info-item">
+                    <label>Full Name</label>
+                    <p>{user.fullName}</p>
                   </div>
                   <div className="info-item">
                     <label>Email</label>
@@ -360,7 +371,7 @@ export default function Profile() {
                 <div className="info-grid">
                   <div className="info-card">
                     <h4>Basic Information</h4>
-                    <div className="form-group">
+                    {/* <div className="form-group">
                       <label>First Name *</label>
                       <input
                         type="text"
@@ -370,9 +381,21 @@ export default function Profile() {
                         onChange={handleInputChange}
                         required
                       />
+                    </div> */}
+
+                    <div className="form-group">
+                      <label>Full Name *</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        name="fullName"
+                        value={formData.fullName}
+                        onChange={handleInputChange}
+                        required
+                      />
                     </div>
                     
-                    <div className="form-group">
+                    {/* <div className="form-group">
                       <label>Last Name</label>
                       <input
                         type="text"
@@ -381,7 +404,7 @@ export default function Profile() {
                         value={formData.lastName}
                         onChange={handleInputChange}
                       />
-                    </div>
+                    </div> */}
                     
                     <div className="form-group">
                       <label>Email</label>
@@ -434,8 +457,9 @@ export default function Profile() {
                     onClick={() => {
                       setEditing(false);
                       setFormData({
-                        firstName: user.firstName || "",
-                        lastName: user.lastName || "",
+                        // firstName: user.firstName || "",
+                        // lastName: user.lastName || "",
+                        fullName: user.fullName || "",
                         email: user.email || "",
                         password: "",
                         confirmPassword: ""

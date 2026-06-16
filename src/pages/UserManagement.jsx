@@ -14,7 +14,8 @@ export default function UserManagement({ currentUser }) {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
-  const [sortConfig, setSortConfig] = useState({ key: 'firstName', direction: 'asc' });
+  // const [sortConfig, setSortConfig] = useState({ key: 'firstName', direction: 'asc' });
+  const [sortConfig, setSortConfig] = useState({ key: 'fullName', direction: 'asc' });
 
   useEffect(() => {
     loadData();
@@ -41,11 +42,13 @@ export default function UserManagement({ currentUser }) {
   const roleCounts = useMemo(() => {
     const employees = allUsers.filter(user => user.role === 'EMPLOYEE' && user.status === 'ACTIVE').length;
     const managers = allUsers.filter(user => user.role === 'MANAGER' && user.status === 'ACTIVE').length;
-    const total = employees + managers;
+    const hrs = allUsers.filter(user => user.role === 'HR' && user.status === 'ACTIVE').length;
+    const total = employees + managers + hrs;
     
     return {
       employees,
       managers,
+
       total
     };
   }, [allUsers]);
@@ -57,7 +60,8 @@ export default function UserManagement({ currentUser }) {
     // Apply search filter
     if (searchTerm) {
       filtered = filtered.filter(u => {
-        const fullName = `${u.firstName} ${u.lastName}`.toLowerCase();
+        // const fullName = `${u.firstName} ${u.lastName}`.toLowerCase();
+        const fullName = `${u.fullName}`.toLowerCase();
         return (
           fullName.includes(searchTerm.toLowerCase()) ||
           u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -77,8 +81,10 @@ export default function UserManagement({ currentUser }) {
         if (sortConfig.key === 'manager') {
           aValue = managers.find(m => m.id === a.managerId);
           bValue = managers.find(m => m.id === b.managerId);
-          aValue = aValue ? `${aValue.firstName} ${aValue.lastName}` : '';
-          bValue = bValue ? `${bValue.firstName} ${bValue.lastName}` : '';
+          // aValue = aValue ? `${aValue.firstName} ${aValue.lastName}` : '';
+          // bValue = bValue ? `${bValue.firstName} ${bValue.lastName}` : '';
+          aValue = aValue ? `${aValue.fullName}` : '';
+          bValue = bValue ? `${bValue.fullName}` : '';
         }
         
         if (aValue < bValue) {
@@ -355,7 +361,7 @@ export default function UserManagement({ currentUser }) {
               <div>
                 <h6 className="card-title text-muted mb-2">Total Users</h6>
                 <h3 className="fw-bold text-primary">{roleCounts.total}</h3>
-                <small className="text-muted">Employees + Managers</small>
+                <small className="text-muted">Employees + Managers + HRs</small>
               </div>
               <div className="bg-primary bg-opacity-10 p-3 rounded">
                 <span style={{ fontSize: '1.5rem' }} className="text-primary">👥</span>
@@ -433,9 +439,11 @@ export default function UserManagement({ currentUser }) {
                   <tr style={{ textAlign: 'left', backgroundColor: '#f8fafc', color: '#374151', fontSize: 14 }}>
                     <th 
                       style={{ padding: 12, cursor: 'pointer', userSelect: 'none' }}
-                      onClick={() => handleSort('firstName')}
+                      // onClick={() => handleSort('firstName')}
+                      onClick={() => handleSort('fullName')}
                     >
-                      Name {getSortIcon('firstName')}
+                      {/* Name {getSortIcon('firstName')} */}
+                      Name {getSortIcon('fullName')}
                     </th>
                     <th 
                       style={{ padding: 12, cursor: 'pointer', userSelect: 'none' }}
@@ -468,10 +476,12 @@ export default function UserManagement({ currentUser }) {
                               display: 'flex', alignItems: 'center', justifyContent: 'center',
                               fontSize: 12, fontWeight: 600
                             }}>
-                              {u.firstName?.[0]}{u.lastName?.[0]}
+                              {/* {u.firstName?.[0]}{u.lastName?.[0]} */}
+                              {u.fullName?.[0]}
                             </div>
                             <div>
-                              <div style={{ fontWeight: 500 }}>{u.firstName} {u.lastName}</div>
+                              {/* <div style={{ fontWeight: 500 }}>{u.firstName} {u.lastName}</div> */}
+                              <div style={{ fontWeight: 500 }}>{u.fullName}</div>
                             </div>
                           </div>
                         </td>
@@ -485,7 +495,8 @@ export default function UserManagement({ currentUser }) {
                             {u.role}
                           </span>
                         </td>
-                        <td style={{ padding: 12 }}>{manager ? `${manager.firstName} ${manager.lastName}` : '-'}</td>
+                        {/* <td style={{ padding: 12 }}>{manager ? `${manager.firstName} ${manager.lastName}` : '-'}</td> */}
+                        <td style={{ padding: 12 }}>{manager ? `${manager.fullName}` : '-'}</td>
                         <td style={{ padding: 12 }}>
                           <span style={{
                             padding: '4px 8px', borderRadius: 12, fontSize: 12, fontWeight: 500,
@@ -552,7 +563,7 @@ export default function UserManagement({ currentUser }) {
           <div style={{ background: '#fff', padding: 30, borderRadius: 12, width: 400 }}>
             <h3>Edit User</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
-              <input
+              {/* <input
                 placeholder="First Name"
                 value={editUser.firstName}
                 onChange={e => setEditUser({ ...editUser, firstName: e.target.value })}
@@ -563,6 +574,13 @@ export default function UserManagement({ currentUser }) {
                 placeholder="Last Name"
                 value={editUser.lastName}
                 onChange={e => setEditUser({ ...editUser, lastName: e.target.value })}
+                style={{ padding: 10, border: '1px solid #d1d5db', borderRadius: 6 }}
+                disabled={editUser.role === 'ADMIN'}
+              /> */}
+              <input
+                placeholder="Full Name"
+                value={editUser.fullName}
+                onChange={e => setEditUser({ ...editUser, fullName: e.target.value })}
                 style={{ padding: 10, border: '1px solid #d1d5db', borderRadius: 6 }}
                 disabled={editUser.role === 'ADMIN'}
               />
@@ -591,7 +609,8 @@ export default function UserManagement({ currentUser }) {
                 >
                   <option value="">-- Select Manager --</option>
                   {managers.map(m => (
-                    <option key={m.id} value={m.id}>{m.firstName} {m.lastName}</option>
+                    // <option key={m.id} value={m.id}>{m.firstName} {m.lastName}</option>
+                    <option key={m.id} value={m.id}>{m.fullName}</option>
                   ))}
                 </select>
               )}

@@ -383,8 +383,8 @@ export default function MyCourses({ user }) {
             if (selectedCourse) {
               setSelectedCourse(prev => ({
                 ...prev,
-                progress: res.body.data.progress,
-                status: res.body.data.status
+                progress: res.data.progress,
+                status: res.data.status
               }));
             }
           }
@@ -597,7 +597,8 @@ export default function MyCourses({ user }) {
           </small>
         </div>
         <div className="d-flex gap-2 align-items-center">
-          <span className="me-3">Welcome, {user?.firstName || 'User'}!</span>
+          {/* <span className="me-3">Welcome, {user?.firstName || 'User'}!</span> */}
+          <span className="me-3">Welcome, {user?.fullName || 'User'}!</span>
           <div className="btn-group">
             <button
               className={`btn btn-outline-dark ${viewMode === "grid" ? "active" : ""}`}

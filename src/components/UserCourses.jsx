@@ -128,7 +128,8 @@ export default function UserCourses({ user }) {
   };
 
   const filteredEmployees = employees.filter(emp => 
-    `${emp.firstName} ${emp.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    // `${emp.firstName} ${emp.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    `${emp.fullName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
     emp.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -355,11 +356,16 @@ export default function UserCourses({ user }) {
             <div className="card-header bg-light py-3">
               {/* <h5 className="card-title mb-0">👥 Employees</h5> */}
               <h4 className="fw-bold text-center mb-3">
-                {selectedEmployee
+                {/* {selectedEmployee
                   ? `📚 Course Progress for ${
                       employees.find(e => e.id === selectedEmployee)?.firstName
                     } ${
                       employees.find(e => e.id === selectedEmployee)?.lastName
+                    }`
+                  : '📚 Select an Employee'} */}
+                  {selectedEmployee
+                  ? `📚 Course Progress for ${
+                      employees.find(e => e.id === selectedEmployee)?.fullName
                     }`
                   : '📚 Select an Employee'}
               </h4>
@@ -435,7 +441,8 @@ export default function UserCourses({ user }) {
                           <div className="d-flex justify-content-between align-items-start fs-5">
                             <div className="flex-grow-1">
                               <div className="d-flex align-items-center">
-                                <h6 className="mb-1">{employee.firstName} {employee.lastName}</h6>
+                                {/* <h6 className="mb-1">{employee.firstName} {employee.lastName}</h6> */}
+                                <h6 className="mb-1">{employee.fullName}</h6>
                                 {needsReminder && (
                                   <span className="badge bg-warning ms-2" title={`${reminderStats.totalReminders} courses need attention`}>
                                     ⚠️ {reminderStats.totalReminders}
@@ -580,12 +587,19 @@ export default function UserCourses({ user }) {
               {/* <h5 className="card-title mb-0">
                 {selectedEmployee ? `📚 Course Progress for ${employees.find(e => e.id === selectedEmployee)?.firstName} ${employees.find(e => e.id === selectedEmployee)?.lastName}` : 'Select an employee'}
               </h5> */}
-              <h4 className="fw-bold mb-3">
+              {/* <h4 className="fw-bold mb-3">
                 {selectedEmployee
                   ? `📚 Course Progress for ${
                       employees.find(e => e.id === selectedEmployee)?.firstName
                     } ${
                       employees.find(e => e.id === selectedEmployee)?.lastName
+                    }`
+                  : '📚 Select an Employee'}
+              </h4> */}
+              <h4 className="fw-bold mb-3">
+                {selectedEmployee
+                  ? `📚 Course Progress for ${
+                      employees.find(e => e.id === selectedEmployee)?.fullName
                     }`
                   : '📚 Select an Employee'}
               </h4>

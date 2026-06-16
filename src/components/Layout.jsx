@@ -19,7 +19,8 @@ export default function Layout({ user, onLogout, children }) {
           <div style={styles.sidebarHeader}>
             <div style={styles.logo}>CSLLP</div>
             <div style={styles.userInfo}>
-              <strong>{user.firstName} {user.lastName}</strong>
+              {/* <strong>{user.firstName} {user.lastName}</strong> */}              
+              <strong>{user.fullName}</strong>
               <small style={styles.roleBadge}>{user.role}</small>
             </div>
           </div>
@@ -34,7 +35,7 @@ export default function Layout({ user, onLogout, children }) {
               </li>
 
               {/* 🆕 UPDATED: Role-based Course Navigation */}
-              {user.role === "EMPLOYEE" ? (
+              {user.role === "EMPLOYEE" && (
                 // 👤 Employee Navigation
                 <>
                   <li>
@@ -53,7 +54,9 @@ export default function Layout({ user, onLogout, children }) {
                     </Link>
                   </li>
                 </>
-              ) : (
+              )} 
+              
+              {(user.role === 'ADMIN' || user.role === 'MANAGER') && (
                 // 👨‍💼 Admin/Manager Navigation  
                 <>
                   <li>
@@ -80,29 +83,63 @@ export default function Layout({ user, onLogout, children }) {
               )}
 
               {/* Common Pages for All Roles */}
-              {/* Common Pages for All Roles */}
 
-              {/* ... other common links ... */}
-              <li>
-                <Link to="/examinations" style={getLinkStyle('/examinations')}>
-                  📝 Examinations
-                </Link>
-              </li>
-              <li>
-                <Link to="/certifications" style={getLinkStyle('/certifications')}>
-                  🏆 Certifications
-                </Link>
-              </li>
-              {/* <li>
-                <Link to="/leaderboards" style={getLinkStyle('/leaderboards')}>
-                  🏅 Leaderboards
-                </Link>
-              </li> */}
+              {/* ... other common links for Admin/Manager & Employee ... */}
+              {(user.role === 'ADMIN' || user.role === 'MANAGER' || user.role === 'EMPLOYEE') && (
+                <>
+                  <li>
+                    <Link to="/examinations" style={getLinkStyle('/examinations')}>
+                      📝 Examinations
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/certifications" style={getLinkStyle('/certifications')}>
+                      🏆 Certifications
+                    </Link>
+                  </li>
+                    </>
+              )}
 
               <hr style={styles.divider} />
 
-              {/* 🆕 UPDATED: Admin Only Links */}
-              {user.role === 'ADMIN' && (
+              {/* leaves for all role */}
+              <li>
+                <Link to="/" style={getLinkStyle('/')}>
+                  👤 Leaves
+                </Link>
+              </li>
+
+              {/* Common Pages for HR, Managers & Admin */}
+              {(user.role === 'ADMIN' || user.role === 'MANAGER' || user.role === 'HR') && (
+                <>
+                  <li>
+                    <Link to="/" style={getLinkStyle('/')}>
+                      👥 Attendance
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/" style={getLinkStyle('/')}>
+                      👥 Payroll
+                    </Link>
+                  </li>
+                </>
+              )}
+
+              {/* only for employee */}
+              {user.role === "EMPLOYEE" && (
+                <>
+                  <li>
+                    <Link to="/" style={getLinkStyle('/')}>
+                      📖 Payslips
+                    </Link>
+                  </li>
+                </>
+              )}
+            
+              <hr style={styles.divider} />
+
+              {/* 🆕 UPDATED: Admin/HR Only Links */}
+              {(user.role === 'ADMIN' || user.role === 'HR') && (
                 <>
                   <li>
                     <Link to="/user-management" style={getLinkStyle('/user-management')}>
@@ -117,8 +154,8 @@ export default function Layout({ user, onLogout, children }) {
                 </>
               )}
 
-              {/* Common Pages for Managers & Admin */}
-              {(user.role === 'ADMIN' || user.role === 'MANAGER') && (
+              {/* Common Pages for HR, Managers & Admin */}
+              {(user.role === 'ADMIN' || user.role === 'MANAGER' || user.role === 'HR') && (
                 <>
                   <li>
                     <Link to="/reports" style={getLinkStyle('/reports')}>
@@ -214,7 +251,6 @@ const styles = {
     listStyle: 'none',
     padding: 0,
     margin: 0,
-    margin: 0,
   },
   navItem: {
     display: 'block',
@@ -262,3 +298,50 @@ const styles = {
     height: '100vh',
   },
 };
+
+
+// {/* 🆕 UPDATED: Role-based Course Navigation */}
+//               {user.role === "EMPLOYEE" ? (
+//                 // 👤 Employee Navigation
+//                 <>
+//                   <li>
+//                     <Link to="/my-courses" style={getLinkStyle('/my-courses')}>
+//                       📖 My Courses
+//                     </Link>
+//                   </li>
+//                   {/* <li>
+//                     <Link to="/study-materials" style={getLinkStyle('/study-materials')}>
+//                       📚 Study Materials
+//                     </Link>
+//                   </li> */}
+//                   <li>
+//                     <Link to="/course-enrollment" style={getLinkStyle('/course-enrollment')}>
+//                       ➕ Course Enrollment
+//                     </Link>
+//                   </li>
+//                 </>
+//               ) : (
+//                 // 👨‍💼 Admin/Manager Navigation  
+//                 <>
+//                   <li>
+//                     <Link to="/study-materials" style={getLinkStyle('/study-materials')}>
+//                       📚 Study Materials
+//                     </Link>
+//                   </li>
+//                   <li>
+//                     <Link to="/user-courses" style={getLinkStyle('/user-courses')}>
+//                       👥 User Courses
+//                     </Link>
+//                   </li>
+//                   <li>
+//                     <Link to="/course-management" style={getLinkStyle('/course-management')}>
+//                       🎯 Course Management
+//                     </Link>
+//                   </li>
+//                   <li>
+//                     <Link to="/course-approvals" style={getLinkStyle('/course-approvals')}>
+//                       ✅ Course Approvals
+//                     </Link>
+//                   </li>
+//                 </>
+//               )}

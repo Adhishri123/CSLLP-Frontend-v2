@@ -271,8 +271,9 @@ export default function Reports({ user }) {
     
     const term = searchTerm.toLowerCase().trim();
     return employees.filter(employee => 
-      (employee.firstName && employee.firstName.toLowerCase().includes(term)) ||
-      (employee.lastName && employee.lastName.toLowerCase().includes(term)) ||
+      // (employee.firstName && employee.firstName.toLowerCase().includes(term)) ||
+      // (employee.lastName && employee.lastName.toLowerCase().includes(term)) ||
+      (employee.fullName && employee.fullName.toLowerCase().includes(term)) ||
       (employee.email && employee.email.toLowerCase().includes(term)) ||
       (employee.name && employee.name.toLowerCase().includes(term)) ||
       (employee.id && employee.id.toString().includes(term))
@@ -878,9 +879,15 @@ function ResultsView({ allResults, exams, employees, userRole, myResults, search
                         <td className="employee-info">
                           <div className="employee-details">
                             <div className="employee-name">
-                              <strong>
+                              {/* <strong>
                                 {employee.firstName && employee.lastName 
                                   ? `${employee.firstName} ${employee.lastName}`
+                                  : employee.name || `Employee ${employee.id}`
+                                }
+                              </strong> */}
+                              <strong>
+                                {employee.fullName 
+                                  ? `${employee.fullName}`
                                   : employee.name || `Employee ${employee.id}`
                                 }
                               </strong>
@@ -1008,9 +1015,15 @@ function ResultsView({ allResults, exams, employees, userRole, myResults, search
                       <td className="employee-info">
                         <div className="employee-details">
                           <div className="employee-name">
-                            <strong>
+                            {/* <strong>
                               {result.employeeName || (employee?.firstName && employee?.lastName 
                                 ? `${employee.firstName} ${employee.lastName}`
+                                : employee?.name || `Employee ${result.employeeId}`
+                              )}
+                            </strong> */}
+                            <strong>
+                              {result.employeeName || (employee?.fullName 
+                                ? `${employee.fullName}`
                                 : employee?.name || `Employee ${result.employeeId}`
                               )}
                             </strong>
