@@ -437,6 +437,7 @@ export default function UserManagement({ currentUser }) {
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ textAlign: 'left', backgroundColor: '#f8fafc', color: '#374151', fontSize: 14 }}>
+                    <th style={{ padding: 12 }}>ID</th>
                     <th 
                       style={{ padding: 12, cursor: 'pointer', userSelect: 'none' }}
                       // onClick={() => handleSort('firstName')}
@@ -452,6 +453,8 @@ export default function UserManagement({ currentUser }) {
                       Email {getSortIcon('email')}
                     </th>
                     <th style={{ padding: 12 }}>Role</th>
+                    <th style={{ padding: 12 }}>Designation</th>
+                    <th style={{ padding: 12 }}>Join Date</th>
                     <th style={{ padding: 12 }}>Manager</th>
                     <th 
                       style={{ padding: 12, cursor: 'pointer', userSelect: 'none' }}
@@ -459,7 +462,6 @@ export default function UserManagement({ currentUser }) {
                     >
                       Status {getSortIcon('status')}
                     </th>
-                    <th style={{ padding: 12 }}>ID</th>
                     <th style={{ padding: 12 }}>Actions</th>
                   </tr>
                 </thead>
@@ -468,6 +470,9 @@ export default function UserManagement({ currentUser }) {
                     const manager = managers.find(m => m.id === u.managerId);
                     return (
                       <tr key={u.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <td style={{ padding: 12 }}>
+                          <code style={{ fontSize: 12, color: '#6b7280', backgroundColor: '#f3f4f6', padding: '2px 6px', borderRadius: 4 }}>{u.id}</code>
+                        </td>
                         <td style={{ padding: 12 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                             <div style={{
@@ -495,6 +500,12 @@ export default function UserManagement({ currentUser }) {
                             {u.role}
                           </span>
                         </td>
+                        <td>
+                            {u.designation}
+                        </td>
+                        <td>
+                            {u.dateOfJoining}
+                        </td>
                         {/* <td style={{ padding: 12 }}>{manager ? `${manager.firstName} ${manager.lastName}` : '-'}</td> */}
                         <td style={{ padding: 12 }}>{manager ? `${manager.fullName}` : '-'}</td>
                         <td style={{ padding: 12 }}>
@@ -505,9 +516,6 @@ export default function UserManagement({ currentUser }) {
                           }}>
                             {u.status || 'ACTIVE'}
                           </span>
-                        </td>
-                        <td style={{ padding: 12 }}>
-                          <code style={{ fontSize: 12, color: '#6b7280', backgroundColor: '#f3f4f6', padding: '2px 6px', borderRadius: 4 }}>{u.id}</code>
                         </td>
                         <td style={{ padding: 12, display: 'flex', gap: 8 }}>
                           <button
@@ -560,9 +568,9 @@ export default function UserManagement({ currentUser }) {
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
           display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
         }}>
-          <div style={{ background: '#fff', padding: 30, borderRadius: 12, width: 400 }}>
-            <h3>Edit User</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
+          <div style={{ background: '#fff', padding: 30, borderRadius: 12, width: 1000 }}>
+            <h3 style={{textAlign: 'center' }}>Edit User</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 12 }}>
               {/* <input
                 placeholder="First Name"
                 value={editUser.firstName}
@@ -588,6 +596,34 @@ export default function UserManagement({ currentUser }) {
                 placeholder="Email"
                 value={editUser.email}
                 onChange={e => setEditUser({ ...editUser, email: e.target.value })}
+                style={{ padding: 10, border: '1px solid #d1d5db', borderRadius: 6 }}
+                disabled={editUser.role === 'ADMIN'}
+              />
+              <input
+                placeholder="Mobile Number"
+                value={editUser.phoneNumber}
+                onChange={e => setEditUser({ ...editUser, phoneNumber: e.target.value })}
+                style={{ padding: 10, border: '1px solid #d1d5db', borderRadius: 6 }}
+                disabled={editUser.role === 'ADMIN'}
+              />
+              <input
+                placeholder="Address"
+                value={editUser.address}
+                onChange={e => setEditUser({ ...editUser, address: e.target.value })}
+                style={{ padding: 10, border: '1px solid #d1d5db', borderRadius: 6 }}
+                disabled={editUser.role === 'ADMIN'}
+              />
+              <input
+                placeholder="Designation"
+                value={editUser.designation}
+                onChange={e => setEditUser({ ...editUser, designation: e.target.value })}
+                style={{ padding: 10, border: '1px solid #d1d5db', borderRadius: 6 }}
+                disabled={editUser.role === 'ADMIN'}
+              />
+              <input
+                placeholder="Department"
+                value={editUser.department}
+                onChange={e => setEditUser({ ...editUser, department: e.target.value })}
                 style={{ padding: 10, border: '1px solid #d1d5db', borderRadius: 6 }}
                 disabled={editUser.role === 'ADMIN'}
               />
@@ -623,6 +659,69 @@ export default function UserManagement({ currentUser }) {
                 <option value="ACTIVE">ACTIVE</option>
                 <option value="INACTIVE">INACTIVE</option>
               </select>
+              <input
+                placeholder="Joining Date"
+                value={editUser.dateOfJoining}
+                onChange={e => setEditUser({ ...editUser, dateOfJoining: e.target.value })}
+                style={{ padding: 10, border: '1px solid #d1d5db', borderRadius: 6 }}
+                disabled={editUser.role === 'ADMIN'}
+              />
+              <input
+                placeholder="Annual Salary"
+                value={editUser.annualSalary}
+                onChange={e => setEditUser({ ...editUser, annualSalary: e.target.value })}
+                style={{ padding: 10, border: '1px solid #d1d5db', borderRadius: 6 }}
+                disabled={editUser.role === 'ADMIN'}
+              />
+              <input
+                placeholder="PAN Number"
+                value={editUser.panNumber}
+                onChange={e => setEditUser({ ...editUser, panNumber: e.target.value })}
+                style={{ padding: 10, border: '1px solid #d1d5db', borderRadius: 6 }}
+                disabled={editUser.role === 'ADMIN'}
+              />
+              <input
+                placeholder="PF Number"
+                value={editUser.pfNumber}
+                onChange={e => setEditUser({ ...editUser, pfNumber: e.target.value })}
+                style={{ padding: 10, border: '1px solid #d1d5db', borderRadius: 6 }}
+                disabled={editUser.role === 'ADMIN'}
+              />
+              <input
+                placeholder="UAN Number"
+                value={editUser.uanNumber}
+                onChange={e => setEditUser({ ...editUser, uanNumber: e.target.value })}
+                style={{ padding: 10, border: '1px solid #d1d5db', borderRadius: 6 }}
+                disabled={editUser.role === 'ADMIN'}
+              />
+              <input
+                placeholder="Bank Account Number"
+                value={editUser.bankAccountNumber}
+                onChange={e => setEditUser({ ...editUser, bankAccountNumber: e.target.value })}
+                style={{ padding: 10, border: '1px solid #d1d5db', borderRadius: 6 }}
+                disabled={editUser.role === 'ADMIN'}
+              />
+              <input
+                placeholder="Bank Name"
+                value={editUser.bankName}
+                onChange={e => setEditUser({ ...editUser, bankName: e.target.value })}
+                style={{ padding: 10, border: '1px solid #d1d5db', borderRadius: 6 }}
+                disabled={editUser.role === 'ADMIN'}
+              />
+              <input
+                placeholder="Bank Branch Name"
+                value={editUser.bankBranch}
+                onChange={e => setEditUser({ ...editUser, bankBranch: e.target.value })}
+                style={{ padding: 10, border: '1px solid #d1d5db', borderRadius: 6 }}
+                disabled={editUser.role === 'ADMIN'}
+              />
+              <input
+                placeholder="Bank Account Number"
+                value={editUser.vendorCode}
+                onChange={e => setEditUser({ ...editUser, vendorCode: e.target.value })}
+                style={{ padding: 10, border: '1px solid #d1d5db', borderRadius: 6 }}
+                disabled={editUser.role === 'ADMIN'}
+              />
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 20 }}>
               <button onClick={() => setEditUser(null)} style={{ padding: '8px 16px', borderRadius: 6, border: '1px solid #d1d5db', color: 'white', background: 'rgb(26, 86, 219)' }}>Cancel</button>

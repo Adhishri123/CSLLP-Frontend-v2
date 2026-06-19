@@ -17,10 +17,15 @@ export default function Profile() {
   
   // Form states
   const [formData, setFormData] = useState({
+    id: "",
     // firstName: "",
     // lastName: "",
     fullName: "",
     email: "",
+    phoneNumber: "",
+    address: "",
+    designation: "",
+    department: "",
     password: "",
     confirmPassword: ""
   });
@@ -53,10 +58,15 @@ export default function Profile() {
         console.log("User Data of profile:", userData)
         setUser(userData);
         setFormData({
+          id: userData.id || "",
           // firstName: userData.firstName || "",
           // lastName: userData.lastName || "",
           fullName: userData.fullName || "",
           email: userData.email || "",
+          phoneNumber: userData.phoneNumber || "",
+          address: userData.address || "",
+          designation: userData.designation || "",
+          department: userData.department || "",
           password: "",
           confirmPassword: ""
         });
@@ -97,7 +107,11 @@ export default function Profile() {
       const updateData = {
         // firstName: formData.firstName,
         // lastName: formData.lastName
-        fullName: formData.fullName
+        fullName: formData.fullName,
+        phoneNumber: formData.phoneNumber,
+        address: formData.address,
+        designation: formData.designation,
+        department: formData.department
       };
 
       // Only include password if provided
@@ -114,10 +128,15 @@ export default function Profile() {
         // Update local storage with new user data
         const updatedCurrentUser = {
           ...currentUser,
+          id: updatedUser.id,
           // firstName: updatedUser.firstName,
           // lastName: updatedUser.lastName,
           fullName: updatedUser.fullName,
-          email: updatedUser.email
+          email: updatedUser.email,
+          phoneNumber: updatedUser.phoneNumber,
+          address: updatedUser.address,
+          designation: updatedUser.designation,
+          department: updatedUser.department
         };
         localStorage.setItem('csllp_user', JSON.stringify(updatedCurrentUser));
         
@@ -291,7 +310,7 @@ export default function Profile() {
               <h2 className="profile-name">{user.fullName}</h2>
               <p className="profile-email">{user.email}</p>
               <div className="profile-badges">
-                {getRoleBadge(user.role)}
+                {getRoleBadge(user.role)}{"  "}
                 <span className={`badge ${user.status === 'ACTIVE' ? 'bg-success' : 'bg-secondary'} status-badge`}>
                   {user.status}
                 </span>
@@ -312,6 +331,10 @@ export default function Profile() {
               <div className="info-grid">
                 <div className="info-card">
                   <h4>Basic Information</h4>
+                  <div className="info-item">
+                    <label>User Id</label>
+                    <p>{user.id}</p>
+                  </div>
                   {/* <div className="info-item">
                     <label>First Name</label>
                     <p>{user.firstName}</p>
@@ -327,6 +350,14 @@ export default function Profile() {
                   <div className="info-item">
                     <label>Email</label>
                     <p>{user.email}</p>
+                  </div>
+                  <div className="info-item">
+                    <label>Mobile No.</label>
+                    <p>{user.phoneNumber}</p>
+                  </div>
+                  <div className="info-item">
+                    <label>Address</label>
+                    <p>{user.address}</p>
                   </div>
                 </div>
 
@@ -347,6 +378,14 @@ export default function Profile() {
                   <div className="info-item">
                     <label>Member Since</label>
                     <p>{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}</p>
+                  </div>
+                  <div className="info-item">
+                    <label>Designation</label>
+                    <p>{user.designation}</p>
+                  </div>
+                  <div className="info-item">
+                    <label>Department</label>
+                    <p>{user.department}</p>
                   </div>
                 </div>
               </div>
@@ -371,6 +410,18 @@ export default function Profile() {
                 <div className="info-grid">
                   <div className="info-card">
                     <h4>Basic Information</h4>
+
+                    <div className="form-group">
+                      <label>User Id</label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        value={user.id}
+                        disabled
+                      />
+                      <small className="text-muted">ID cannot be changed</small>
+                    </div>
+
                     {/* <div className="form-group">
                       <label>First Name *</label>
                       <input
@@ -384,7 +435,7 @@ export default function Profile() {
                     </div> */}
 
                     <div className="form-group">
-                      <label>Full Name *</label>
+                      <label>Full Name</label>
                       <input
                         type="text"
                         className="form-control"
@@ -415,6 +466,54 @@ export default function Profile() {
                         disabled
                       />
                       <small className="text-muted">Email cannot be changed</small>
+                    </div>
+
+                    <div className="form-group">
+                      <label>Mobile No.</label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        name="phoneNumber"
+                        value={formData.phoneNumber}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Address</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        name="address"
+                        value={formData.address}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Designation</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        name="designation"
+                        value={formData.designation}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Department</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        name="department"
+                        value={formData.department}
+                        onChange={handleInputChange}
+                        required
+                      />
                     </div>
                   </div>
 
@@ -461,6 +560,10 @@ export default function Profile() {
                         // lastName: user.lastName || "",
                         fullName: user.fullName || "",
                         email: user.email || "",
+                        phoneNumber: user.phoneNumber || "",
+                        address: user.address || "",
+                        designation: user.designation || "",
+                        department: user.department || "",
                         password: "",
                         confirmPassword: ""
                       });
