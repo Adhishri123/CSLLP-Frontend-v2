@@ -30,6 +30,14 @@ import Profile from "./components/Profile";
 import StudyMaterials from "./components/StudyMaterials";
 import UserCourses from "./components/UserCourses"; // 🆕 NEW IMPORT
 
+import LeaveManagementPage from "./pages/LeaveManagementPage";
+import EmployeeLeavePage from "./pages/EmployeeLeavePage";
+import Payroll from "./pages/Payroll";
+import AttendancePage from "./pages/AttendancePage";
+import EmployeeAttendance from "./pages/EmployeeAttendance";
+import EmployeeReportTab from "./pages/EmployeeReportTab";
+
+
 // Services
 import { loadUserFromStorage, saveUserToStorage, clearUser } from "./services/api";
 
@@ -69,6 +77,45 @@ export default function App() {
       return <EmployeeDashboard user={user} />;
     }
   };
+
+  const getProtectedLeavesPage = () => {
+  // const { user } = useContext(AuthContext);
+  // if (!user) return <Login />;
+
+  // Role-based rendering
+  if (user.role === "ADMIN" || user.role === "MANAGER") {
+    return <LeaveManagementPage/>;
+  } else {
+    return <EmployeeLeavePage/>;
+  }
+};
+
+const getProtectedAttendancePage = () => {
+  // const { user } = useContext(AuthContext);
+  // if (!user) return <Login />;
+
+  // Role-based rendering for attendance
+  if (user.role === "ADMIN" || user.role === "MANAGER" ) {
+    return <AttendancePage/>;
+  } else if (user.role === "HR") {
+    return <EmployeeAttendance/>;
+  }
+
+  // Add a fallback return
+  return <AttendancePage />; // or redirect to dashboard
+}
+
+const getProtectedReportsPage = () => {
+  // const { user } = useContext(AuthContext);
+  // if (!user) return <Login />;
+
+  // Only employees can access their reports
+  if (user.role === "EMPLOYEE") {
+    return <EmployeeReportTab />;
+  } else {
+    return <div className="alert alert-warning m-4">Access denied. This page is only for employees.</div>;
+  }
+}
 
   return (
     <Router>
@@ -121,6 +168,39 @@ export default function App() {
             element={
               user.role === "ADMIN" || user.role === "MANAGER"
                 ? <CourseApprovals user={user} />
+                : <Navigate to="/" replace />
+            }
+          />
+
+          {/* Role-based leave page for all role */}
+          <Route path="/leaves" element={getProtectedLeavesPage()} />
+
+          {/* Admin, HR, Manager Only Pages */}
+          <Route
+            path="/payroll"
+            element={
+              user.role === "ADMIN" || user.role === 'HR' || user.role === "MANAGER"
+                ? <Payroll user={user} />
+                : <Navigate to="/" replace />
+            }
+          /> 
+
+          {/* <Route path="/attendance" element={getProtectedAttendancePage()} /> */}
+          <Route
+            path="/attendance"
+            element={
+              user.role === "ADMIN" || user.role === 'HR' || user.role === "MANAGER"
+                ? getProtectedAttendancePage()
+                : <Navigate to="/" replace />
+            }
+          /> 
+
+          {/* Payslip for Employee only*/}
+          <Route
+            path="/payslip"
+            element={
+              user.role === "EMPLOYEE"
+                ? getProtectedReportsPage()
                 : <Navigate to="/" replace />
             }
           />

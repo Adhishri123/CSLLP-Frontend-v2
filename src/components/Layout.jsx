@@ -104,7 +104,7 @@ export default function Layout({ user, onLogout, children }) {
 
               {/* leaves for all role */}
               <li>
-                <Link to="#leaves" style={getLinkStyle('')}>
+                <Link to="/leaves" style={getLinkStyle('/leaves')}>
                   👤 Leaves
                 </Link>
               </li>
@@ -113,12 +113,12 @@ export default function Layout({ user, onLogout, children }) {
               {(user.role === 'ADMIN' || user.role === 'MANAGER' || user.role === 'HR') && (
                 <>
                   <li>
-                    <Link to="#attendance" style={getLinkStyle('')}>
+                    <Link to="/attendance" style={getLinkStyle('/attendance')}>
                       👥 Attendance
                     </Link>
                   </li>
                   <li>
-                    <Link to="#payroll" style={getLinkStyle('')}>
+                    <Link to="/payroll" style={getLinkStyle('/payroll')}>
                       👥 Payroll
                     </Link>
                   </li>
@@ -129,7 +129,7 @@ export default function Layout({ user, onLogout, children }) {
               {user.role === "EMPLOYEE" && (
                 <>
                   <li>
-                    <Link to="#" style={getLinkStyle('/')}>
+                    <Link to="/payslip" style={getLinkStyle('/payslip')}>
                       📖 Payslips
                     </Link>
                   </li>
