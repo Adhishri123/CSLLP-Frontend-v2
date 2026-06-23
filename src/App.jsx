@@ -1,7 +1,7 @@
 // src/App.jsx
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-
+import { AuthProvider } from './context/AuthContext';
 // 🔴 ADD THIS IMPORT
 import Layout from "./components/Layout";
 import Login from "./pages/Login";
@@ -95,14 +95,14 @@ const getProtectedAttendancePage = () => {
   // if (!user) return <Login />;
 
   // Role-based rendering for attendance
-  if (user.role === "ADMIN" || user.role === "MANAGER" ) {
+  if (user.role === "ADMIN" || user.role === "MANAGER" || user.role === "HR") {
     return <AttendancePage/>;
-  } else if (user.role === "HR") {
+  } else {
     return <EmployeeAttendance/>;
   }
 
   // Add a fallback return
-  return <AttendancePage />; // or redirect to dashboard
+  // return <AttendancePage />; // or redirect to dashboard
 }
 
 const getProtectedReportsPage = () => {
@@ -118,6 +118,7 @@ const getProtectedReportsPage = () => {
 }
 
   return (
+    <AuthProvider>
     <Router>
       {/* 🔴 WRAP ALL ROUTES WITH LAYOUT COMPONENT */}
       <Layout user={user} onLogout={handleLogout}>
@@ -233,5 +234,6 @@ const getProtectedReportsPage = () => {
         </Routes>
       </Layout>
     </Router>
+    </AuthProvider>
   );
 }
