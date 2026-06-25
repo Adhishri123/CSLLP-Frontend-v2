@@ -114,6 +114,7 @@ export default function Feedback({ user }) {
         case 'team':
           if (isManager) {
             response = await getTeamFeedbackSummary(user.id);
+            // console.log("get team summary:", response);
             if (response.success) {
               setTeamSummary(response.data);
               setFeedbacks(response.data.teamFeedbacks || []);

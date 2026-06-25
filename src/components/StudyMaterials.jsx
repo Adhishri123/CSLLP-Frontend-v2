@@ -621,7 +621,7 @@ async function fetchCourses() {
 
         console.log("🔄 Uploading new material...");
         res = await uploadMaterial(formData);
-console.log("Return from um ", res)
+console.log("Return from um ", res);
         if (res.success) {
           showSuccess("Upload Successful", "✅ Material uploaded successfully!");
           await fetchMaterials();

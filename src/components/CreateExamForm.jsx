@@ -136,7 +136,7 @@ export default function CreateExamForm() {
     }
 
     try {
-      const creatorId = localStorage.getItem("userId") || 3;
+      const creatorId = localStorage.getItem("userId") || 1;
       console.log("Creator Id:", creatorId);
 
       const examPayload = {
@@ -153,9 +153,10 @@ export default function CreateExamForm() {
       // }
 
       // const createExam = createdExam.data;
-      const examId = createdExam.data.id;
+      const examId = createdExam?.data?.id;
       console.log("Created Exam ID:", examId);
-      setExamCreated(createdExam);
+      // setExamCreated(createdExam);
+      setExamCreated(examId);
 
       for (const q of questions) {
         const options = q.optionsText
@@ -174,7 +175,8 @@ export default function CreateExamForm() {
           options
         };
 
-        await addQuestion(createdExam.id, questionPayload);
+        // await addQuestion(createdExam.id, questionPayload);
+        await addQuestion(examId, questionPayload);
       }
 
       setMessage("🎉 Exam and questions created successfully!");
