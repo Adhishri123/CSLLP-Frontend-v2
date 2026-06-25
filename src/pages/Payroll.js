@@ -244,7 +244,7 @@ export default function Payroll() {
     
     try {
       // ✅ CHANGED: Use axiosInstance with JWT
-      const employeeResponse = await axiosInstance.get(`http://localhost:8088/api/employees/${employeeId}`);
+      const employeeResponse = await axiosInstance.get(`http://localhost:8088/api/users/${employeeId}`);
 
       if (employeeResponse.data) {
         employeeEmail = employeeResponse.data.email || "";
@@ -369,7 +369,7 @@ export default function Payroll() {
         const employeeId = annualFormData.employeeId.trim();
         
         // ✅ CHANGED: Use axiosInstance with JWT
-        const response = await axiosInstance.get(`http://localhost:8088/api/employees/${employeeId}/package`);
+        const response = await axiosInstance.get(`http://localhost:8081/api/users/${employeeId}/package`);
 
         const employee = response.data;
         console.log("✅ Employee data received:", employee);
@@ -430,7 +430,7 @@ export default function Payroll() {
         } else if (error.response?.status === 404) {
           alert(`❌ Employee not found with ID: ${annualFormData.employeeId}`);
         } else if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
-          alert("❌ Cannot connect to employee service. Make sure it's running on port 8088.");
+          alert("❌ Cannot connect to employee service. Make sure it's running on port 8081.");
         } else {
           alert(`❌ Error fetching employee: ${error.message}`);
         }
