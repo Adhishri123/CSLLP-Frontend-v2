@@ -9,7 +9,7 @@ const EmployeeLeavePage = () => {
   const { user } = useContext(AuthContext);
   const employee = user;
   const employeeId = user?.id || user?.employeeId;
-  const employeeName = user?.name || user?.employeeName;
+  const employeeName = user?.name || user?.fullName;
  
   // 🔍 ADDED DEBUGGING
   console.log("🔄 DEBUG: Component loaded - Employee data from AuthContext:");

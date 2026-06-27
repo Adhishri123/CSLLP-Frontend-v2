@@ -1,14 +1,3 @@
-// import React from 'react'
-
-// function attendanceApi() {
-//   return (
-//     <div>attendanceApi</div>
-//   )
-// }
-
-// export default attendanceApi
-
-
 import axiosInstance from "./axiosConfig";
 
 const API_URL = "http://localhost:8094/api/attendance"; 
@@ -63,7 +52,7 @@ export const getMonthlyAttendance = async (year, month) => {
 
 // ✅ Get employees list from attendance
 export const getEmployeesFromAttendance = async () => {
-  const response = await axiosInstance.get(`${API_URL}/employees`);
+  const response = await axiosInstance.get(`${API_URL}/employees-info`);
   return response.data;
 };
 

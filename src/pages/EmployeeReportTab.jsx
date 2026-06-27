@@ -20,7 +20,7 @@ const EmployeeReportTab = () => {
 
   // ✅ Get employee info from AuthContext instead of localStorage
   const employeeId = user?.id || user?.employeeId;
-  const employeeName = user?.name || user?.employeeName;
+  const employeeName = user?.name || user?.fullName;
 
   // Set default values on component mount
   useEffect(() => {
@@ -57,7 +57,6 @@ const EmployeeReportTab = () => {
     }));
   };
 
-  // ✅ UPDATED: Generate payslip with JWT
   const generatePayslip = async () => {
     if (!formData.month || !formData.year) {
       setError('Please select month and year');
@@ -80,7 +79,6 @@ const EmployeeReportTab = () => {
         year: formData.year
       });
 
-      // ✅ Use axiosInstance with JWT
       const response = await axiosInstance.post(
         `http://localhost:8092/api/payroll/generate?employeeId=${employeeId}&month=${formData.month}&year=${formData.year}`
       );
@@ -100,7 +98,7 @@ const EmployeeReportTab = () => {
     }
   };
 
-  // ✅ UPDATED: Download payslip with JWT
+  // ✅ FIXED: Download payslip with proper Authorization header
   const downloadPayslip = async () => {
     if (!formData.month || !formData.year) {
       setError('Please select month and year first');
@@ -119,18 +117,29 @@ const EmployeeReportTab = () => {
         year: formData.year,
       });
 
-      // ✅ Use axiosInstance with JWT
-      const response = await axiosInstance.get(
+      // ✅ Get the token from localStorage or wherever it's stored
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      
+      // ✅ Make the request with explicit Authorization header
+      const response = await fetch(
         `http://localhost:8092/api/payroll/download-payslip/by-month?employeeId=${employeeId}&month=${formData.month}&year=${formData.year}`,
         {
-          responseType: 'blob'
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
         }
       );
 
-      const blob = response.data;
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Server responded with ${response.status}: ${errorText}`);
+      }
+
+      const blob = await response.blob();
       
-      if (blob.type !== 'application/pdf') {
-        // Check if response is actually an error message
+      if (!blob.type.includes('pdf')) {
         const text = await blob.text();
         try {
           const errorData = JSON.parse(text);
@@ -157,7 +166,7 @@ const EmployeeReportTab = () => {
     }
   };
 
-  // ✅ UPDATED: Generate offer letter with JWT
+  // ✅ FIXED: Generate offer letter with proper Authorization header
   const generateOfferLetter = async () => {
     if (!employeeId) {
       setError('Employee info not found. Please login again.');
@@ -167,15 +176,27 @@ const EmployeeReportTab = () => {
     try {
       console.log('Generating offer letter for:', employeeId);
 
-      // ✅ Use axiosInstance with JWT
-      const response = await axiosInstance.get(
+      // ✅ Get the token
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+
+      // ✅ Make the request with explicit Authorization header
+      const response = await fetch(
         `http://localhost:8092/api/payroll/offer-letter/generate?employeeId=${employeeId}`,
         {
-          responseType: 'blob'
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
         }
       );
 
-      const blob = response.data;
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Server responded with ${response.status}: ${errorText}`);
+      }
+
+      const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.style.display = 'none';
