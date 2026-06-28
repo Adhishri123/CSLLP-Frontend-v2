@@ -1,14 +1,3 @@
-// import React from 'react'
-
-// function employeeApi() {
-//   return (
-//     <div>employeeApi</div>
-//   )
-// }
-
-// export default employeeApi
-
-
 import axiosInstance from "./axiosConfig";
 
 const API = axiosInstance.create({

@@ -1,14 +1,3 @@
-// import React from 'react'
-
-// function leaveApi() {
-//   return (
-//     <div>leaveApi</div>
-//   )
-// }
-
-// export default leaveApi
-
-
 import axiosInstance from "./axiosConfig";
 
 const BASE_URL = "http://localhost:8093/api/leaves";
@@ -342,7 +331,7 @@ export const getCurrentMonthYear = () => {
 // ✅ NEW: Get employee details by ID
 export const getEmployeeDetails = async (employeeId) => {
   try {
-    const response = await axiosInstance.get(`http://localhost:8081/api/employees/${employeeId}`);
+    const response = await axiosInstance.get(`http://localhost:8081/api/users/${employeeId}`);
     return response.data;
   } catch (error) {
     console.error("❌ Error fetching employee details:", error);
