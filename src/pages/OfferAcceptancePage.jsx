@@ -30,7 +30,7 @@ const OfferAcceptancePage = () => {
     // ✅ UPDATED: Fetch employee data with JWT
     const fetchEmployeeData = async () => {
         try {
-            const response = await axiosInstance.get(`http://localhost:8088/api/employees/${employeeId}/package`);
+            const response = await axiosInstance.get(`http://localhost:8081/api/users/${employeeId}/package`);
             if (response.data) {
                 setEmployeeData(response.data);
             } else {
