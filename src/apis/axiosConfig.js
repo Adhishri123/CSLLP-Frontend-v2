@@ -1,14 +1,3 @@
-// import React from 'react'
-
-// function axiosConfig() {
-//   return (
-//     <div>axiosConfig</div>
-//   )
-// }
-
-// export default axiosConfig
-
-
 import axios from "axios";
 
 const axiosInstance = axios.create({

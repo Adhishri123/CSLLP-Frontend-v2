@@ -244,10 +244,10 @@ export default function Payroll() {
     
     try {
       // ✅ CHANGED: Use axiosInstance with JWT
-      const employeeResponse = await axiosInstance.get(`http://localhost:8088/api/users/${employeeId}`);
+      const employeeResponse = await axiosInstance.get(`http://localhost:8081/api/users/${employeeId}`);
 
       if (employeeResponse.data) {
-        employeeEmail = employeeResponse.data.email || "";
+        employeeEmail = employeeResponse.data.data.email || "";
         console.log("✅ Found employee email:", employeeEmail);
       }
     } catch (error) {
@@ -1063,7 +1063,7 @@ export default function Payroll() {
                                   structure.employeeId, 
                                   today.getMonth() + 1, 
                                   today.getFullYear(),
-                                  structure.employeeName
+                                  structure.fullName
                                 );
                               }}
                               disabled={downloadLoading === structure.employeeId}

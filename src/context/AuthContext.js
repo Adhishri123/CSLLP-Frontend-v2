@@ -1,105 +1,132 @@
-import { createContext, useState, useEffect } from "react";
- 
+import React, { createContext, useState, useContext, useEffect } from 'react';
+import axiosInstance from '../apis/axiosConfig';
+
+// Create the context
 export const AuthContext = createContext();
- 
+
+// Create the provider component
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // ✅ Load user from localStorage on app start (UPDATED for JWT)
   useEffect(() => {
-    // Check for JWT token first
-    const token = localStorage.getItem("jwt_token");
-    const userData = localStorage.getItem("user");
-    
-    if (token && userData) {
+    // Check if user is already logged in (from localStorage)
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
       try {
-        const parsedUser = JSON.parse(userData);
+        const parsedUser = JSON.parse(storedUser);
+        console.log('✅ User loaded from localStorage:', parsedUser);
         setUser(parsedUser);
-        console.log("✅ User restored from JWT:", parsedUser);
+        
+        // Optionally verify token with backend
+        if (parsedUser.token) {
+          // You can add token verification here if needed
+          // verifyToken(parsedUser.token);
+        }
       } catch (error) {
-        console.error("Error parsing user data:", error);
-        localStorage.removeItem("jwt_token");
-        localStorage.removeItem("user");
+        console.error('❌ Error parsing stored user:', error);
+        localStorage.removeItem('user');
+      }
+    } else {
+      // Try sessionStorage as fallback
+      const sessionUser = sessionStorage.getItem('user');
+      if (sessionUser) {
+        try {
+          const parsedUser = JSON.parse(sessionUser);
+          console.log('✅ User loaded from sessionStorage:', parsedUser);
+          setUser(parsedUser);
+        } catch (error) {
+          console.error('❌ Error parsing session user:', error);
+          sessionStorage.removeItem('user');
+        }
       }
     }
-    
-    // Clean up old storage keys (one-time migration)
-    localStorage.removeItem("authUser");
-    localStorage.removeItem("employee");
-    localStorage.removeItem("admin");
-    
     setLoading(false);
   }, []);
- 
-  // ✅ Updated login function for JWT
-  const login = (email, role, employeeId, employeeName, token) => {
-    // Normalize role to uppercase for consistent checks
-    const normalizedRole = role?.toUpperCase();
-    
-    const userData = {
-      email,
-      role: normalizedRole,
-      id: employeeId,        // Consistent naming
-      employeeId: employeeId, // Keep for backward compatibility
-      name: employeeName,     // Consistent naming
-      employeeName: employeeName, // Keep for backward compatibility
-      loginTime: new Date().toISOString()
-    };
-    
-    // ✅ Store JWT token and user data
-    localStorage.setItem("jwt_token", token);
-    localStorage.setItem("user", JSON.stringify(userData));
-    
-    // ✅ Clean up old storage keys
-    localStorage.removeItem("authUser");
-    localStorage.removeItem("employee");
-    localStorage.removeItem("admin");
-    
-    // Update context state
-    setUser(userData);
-    console.log("✅ User logged in with JWT:", userData);
+
+  // Login function
+  const login = async (email, password) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await axiosInstance.post('http://localhost:8093/api/auth/login', {
+        email,
+        password
+      });
+      
+      console.log('🔍 Login response:', response.data);
+      
+      if (response.data.success && response.data.user) {
+        const userData = response.data.user;
+        
+        // Ensure employee ID exists
+        if (!userData.employeeId && !userData.id) {
+          console.error('❌ No employee ID in user data');
+          throw new Error('Employee ID missing from user data');
+        }
+        
+        // Set employeeId if only id exists
+        if (!userData.employeeId && userData.id) {
+          userData.employeeId = userData.id;
+        }
+        
+        console.log('✅ Login successful, user data:', userData);
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+        
+        return { success: true, user: userData };
+      } else {
+        throw new Error(response.data.message || 'Login failed');
+      }
+    } catch (error) {
+      console.error('❌ Login error:', error);
+      setError(error.message);
+      return { success: false, error: error.message };
+    } finally {
+      setLoading(false);
+    }
   };
- 
-  // ✅ Updated logout function
+
+  // Logout function
   const logout = () => {
-    // Clear state first
     setUser(null);
-    
-    // Clear all JWT-related localStorage items
-    localStorage.removeItem("jwt_token");
-    localStorage.removeItem("user");
-    
-    // Clean up any remaining old data
-    localStorage.removeItem("authUser");
-    localStorage.removeItem("employee");
-    localStorage.removeItem("admin");
-    
-    console.log("✅ User logged out - JWT cleared");
+    localStorage.removeItem('user');
+    sessionStorage.removeItem('user');
+    // Optionally call logout API
+    // axiosInstance.post('http://localhost:8093/api/auth/logout');
   };
 
-  // ✅ Check if user is admin/manager/hr
-  const isAdmin = () => {
-    return user && (user.role === "ADMIN" || user.role === "HR" || user.role === "MANAGER");
+  // Update user data
+  const updateUser = (updatedData) => {
+    const newUserData = { ...user, ...updatedData };
+    setUser(newUserData);
+    localStorage.setItem('user', JSON.stringify(newUserData));
   };
 
-  // ✅ Check if user is employee
-  const isEmployee = () => {
-    return user && user.role === "EMPLOYEE";
+  const value = {
+    user,
+    loading,
+    error,
+    login,
+    logout,
+    updateUser,
+    isAuthenticated: !!user
   };
- 
+
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      login, 
-      logout,
-      loading,
-      isAdmin: isAdmin(),
-      isEmployee: isEmployee(),
-      // Convenience properties
-      token: localStorage.getItem("jwt_token")
-    }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
+};
+
+// Custom hook for using auth context
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };
