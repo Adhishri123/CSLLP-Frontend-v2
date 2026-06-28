@@ -406,7 +406,7 @@ export default function Payroll() {
         // Auto-fill form
         setAnnualFormData(prev => ({
           ...prev,
-          employeeName: employee.name || "",
+          employeeFullName: employee.fullname || "",
           designation: employee.designation || "",
           annualSalary: annualSalary.toString(),
           annualBasic: Math.round(annualBasic).toString(),
