@@ -146,17 +146,33 @@ export default function CreateExamForm() {
         courseId: parseInt(examData.courseId)
       };
 
-      const createdExam = await createExam(examPayload, creatorId);
-      console.log("Exam response :", createdExam);
-      // if (!createdExam.success) {
-      //   throw new Error(createdExam.message);
-      // }
+      // const createdExam = await createExam(examPayload, creatorId);
+      // console.log("Exam response :", createdExam);
+      // // if (!createdExam.success) {
+      // //   throw new Error(createdExam.message);
+      // // }
 
-      // const createExam = createdExam.data;
-      const examId = createdExam?.data?.id;
-      console.log("Created Exam ID:", examId);
-      // setExamCreated(createdExam);
-      setExamCreated(examId);
+      // // const createExam = createdExam.data;
+      // const examId = createdExam?.data?.id;
+      // console.log("Created Exam ID:", examId);
+      // // setExamCreated(createdExam);
+      // setExamCreated(examId);
+
+      const createdExam = await createExam(examPayload, creatorId);
+console.log("Exam response :", createdExam);
+
+const examObj = createdExam?.data;
+
+if (!examObj) {
+  throw new Error("Exam data not returned from API");
+}
+
+console.log("Created Exam:", examObj);
+
+setExamCreated(examObj);
+
+const examId = examObj.id;
+console.log("Created Exam ID:", examId);
 
       for (const q of questions) {
         const options = q.optionsText
@@ -483,12 +499,10 @@ export default function CreateExamForm() {
             </div>
             <div className="success-details">
               <div className="detail-item">
-                <span className="detail-label">Exam ID:</span>
-                <span className="detail-value">{examCreated.id}</span>
+                <span className="detail-label">Exam ID: <span className="detail-value">{examCreated.id}</span></span>
               </div>
               <div className="detail-item">
-                <span className="detail-label">Title:</span>
-                <span className="detail-value">{examCreated.title}</span>
+                <span className="detail-label">Title: <span className="detail-value">{examCreated.title}</span></span>
               </div>
               
             </div>

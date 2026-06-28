@@ -629,6 +629,16 @@ export async function createBulkAssignment(payload) {
 // ============================================================================
 // APPROVALS
 // ============================================================================
+export async function getAllEnrollments() {
+  try {
+    const res = await authFetch(`${COURSE_BASE}/courses/enrollments/all`);
+    console.log("Get all enrollments from Backend: ", res);
+    return parseJson(res);
+  } catch (error) {
+    return { success: false, data: [] };
+  }
+}
+
 export async function getPendingEnrollments() {
   try {
     const res = await authFetch(`${COURSE_BASE}/courses/enrollments/pending`);

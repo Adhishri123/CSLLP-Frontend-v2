@@ -540,19 +540,50 @@ export default function StudyMaterials() {
 //     setCourses([]);
 //   }
 // }
+// async function fetchCourses() {
+//   try {
+//     const res = await getAllCourses();
+//     console.log("Courses response:", res);
+//     if (res.ok && res.body && res.body.success) {
+//       setCourses(res.body.data || []);
+//     } else if (res.ok && res.body && Array.isArray(res.body.data)) {
+//       setCourses(res.body.data);
+//     } else if (res.ok && res.body && Array.isArray(res.body)) {
+//       setCourses(res.body);
+//     } else {
+//       setCourses([]);
+//     }
+//   } catch (err) {
+//     console.error("Failed to fetch courses", err);
+//     setCourses([]);
+//   }
+// }
 async function fetchCourses() {
   try {
     const res = await getAllCourses();
-    console.log("Courses response:", res);
-    if (res.ok && res.body && res.body.success) {
-      setCourses(res.body.data || []);
-    } else if (res.ok && res.body && Array.isArray(res.body.data)) {
-      setCourses(res.body.data);
-    } else if (res.ok && res.body && Array.isArray(res.body)) {
-      setCourses(res.body);
-    } else {
-      setCourses([]);
+
+    console.log("========== COURSE RESPONSE ==========");
+    console.log(res);
+
+    let courseList = [];
+
+    if (Array.isArray(res?.data)) {
+      courseList = res.data;
     }
+    else if (Array.isArray(res?.body?.data)) {
+      courseList = res.body.data;
+    }
+    else if (Array.isArray(res?.body)) {
+      courseList = res.body;
+    }
+    else if (Array.isArray(res)) {
+      courseList = res;
+    }
+
+    console.log("Final Course List:", courseList);
+
+    setCourses(courseList);
+
   } catch (err) {
     console.error("Failed to fetch courses", err);
     setCourses([]);
@@ -1012,6 +1043,9 @@ console.log("Return from um ", res);
                   </div>
                   <div className="col-md-6">
                     <label className="form-label">Course (Optional)</label>
+                    {/* <div className="mb-2">
+                      Courses Loaded: {courses.length}
+                    </div> */}
                     <select
                       className="form-select"
                       value={courseId}
