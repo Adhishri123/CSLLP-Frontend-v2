@@ -6,7 +6,7 @@ import { AuthContext } from "../context/AuthContext";
 export default function EmployeeDashboard({ user, onLogout }) {
   // Get user from JWT context (for HRMS data)
   const { user: authUser } = useContext(AuthContext);
-  
+  const API_GATEWAY_BASE = process.env.REACT_APP_API_GATEWAY || 'http://localhost:8080';
   // ==================== E-LEARNING STATE (ORIGINAL) ====================
   const [manager, setManager] = useState(null);
   const [myCourses, setMyCourses] = useState([]);
@@ -113,8 +113,8 @@ export default function EmployeeDashboard({ user, onLogout }) {
         setLoadingHRMS(true);
         
         const [balanceResponse, leavesResponse] = await Promise.all([
-          axiosInstance.get(`http://localhost:8093/api/leaves/leave-balance/${employeeId}`),
-          axiosInstance.get(`http://localhost:8093/api/leaves/employee/${employeeId}`)
+          axiosInstance.get(`${API_GATEWAY_BASE}/api/leaves/leave-balance/${employeeId}`),
+          axiosInstance.get(`${API_GATEWAY_BASE}/api/leaves/employee/${employeeId}`)
         ]);
         
         const leaves = leavesResponse.data || [];
@@ -152,7 +152,7 @@ export default function EmployeeDashboard({ user, onLogout }) {
         });
 
         const response = await axiosInstance.get(
-          `http://localhost:8094/api/attendance/employee/${employeeId}/monthly-summary`,
+          `${API_GATEWAY_BASE}/api/attendance/employee/${employeeId}/monthly-summary`,
           {
             params: {
               month: selectedMonthYear

@@ -3,6 +3,8 @@ import { AuthContext } from '../context/AuthContext';
 import axiosInstance from '../apis/axiosConfig'; // ✅ Add JWT import
 
 const EmployeeReportTab = () => {
+  const API_GATEWAY_BASE = process.env.REACT_APP_API_GATEWAY || 'http://localhost:8080';
+
   const { user } = useContext(AuthContext);
   const [formData, setFormData] = useState({
     month: '',
@@ -80,7 +82,7 @@ const EmployeeReportTab = () => {
       });
 
       const response = await axiosInstance.post(
-        `http://localhost:8092/api/payroll/generate?employeeId=${employeeId}&month=${formData.month}&year=${formData.year}`
+        `${API_GATEWAY_BASE}/api/payroll/generate?employeeId=${employeeId}&month=${formData.month}&year=${formData.year}`
       );
 
       setPayslipData(response.data);
@@ -122,7 +124,7 @@ const EmployeeReportTab = () => {
       
       // ✅ Make the request with explicit Authorization header
       const response = await fetch(
-        `http://localhost:8092/api/payroll/download-payslip/by-month?employeeId=${employeeId}&month=${formData.month}&year=${formData.year}`,
+        `${API_GATEWAY_BASE}/api/payroll/download-payslip/by-month?employeeId=${employeeId}&month=${formData.month}&year=${formData.year}`,
         {
           method: 'GET',
           headers: {
@@ -181,7 +183,7 @@ const EmployeeReportTab = () => {
 
       // ✅ Make the request with explicit Authorization header
       const response = await fetch(
-        `http://localhost:8092/api/payroll/offer-letter/generate?employeeId=${employeeId}`,
+        `${API_GATEWAY_BASE}/api/payroll/offer-letter/generate?employeeId=${employeeId}`,
         {
           method: 'GET',
           headers: {

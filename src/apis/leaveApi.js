@@ -1,6 +1,7 @@
 import axiosInstance from "./axiosConfig";
+const API_GATEWAY_BASE = process.env.REACT_APP_API_GATEWAY || 'http://localhost:8080';
+const BASE_URL = `${API_GATEWAY_BASE}/api/leaves`;
 
-const BASE_URL = "http://localhost:8093/api/leaves";
 
 // ✅ Get all pending leaves
 export const getPendingLeaves = async () => {
