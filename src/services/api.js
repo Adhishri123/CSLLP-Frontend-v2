@@ -2,13 +2,27 @@
 // ============================================================================
 // BASE URLs
 // ============================================================================
-const USER_BASE = process.env.REACT_APP_USER_SERVICE || 'http://localhost:8081';
-const COURSE_BASE = process.env.REACT_APP_COURSE_SERVICE || 'http://localhost:8088';
-const MATERIAL_BASE = process.env.REACT_APP_MATERIAL_SERVICE || 'http://localhost:8082';
-const EXAM_BASE = process.env.REACT_APP_EXAM_SERVICE || 'http://localhost:8083/api/exams';
-const NOTIF_BASE = process.env.REACT_APP_NOTIFICATION_SERVICE || 'http://localhost:8089';
-const FEEDBACK_BASE = process.env.REACT_APP_FEEDBACK_SERVICE || 'http://localhost:8087';
-const CERTIFICATE_BASE = process.env.REACT_APP_CERTIFICATE_SERVICE || 'http://localhost:8084/api/certificate';
+const API_GATEWAY_BASE = process.env.REACT_APP_API_GATEWAY || 'http://localhost:8080';
+
+// SERVICES THROUGH API GATEWAY
+const USER_BASE = API_GATEWAY_BASE || 'http://localhost:8081';
+const COURSE_BASE = API_GATEWAY_BASE || 'http://localhost:8088';
+const MATERIAL_BASE = API_GATEWAY_BASE || 'http://localhost:8082';
+const EXAM_BASE = `${API_GATEWAY_BASE}/api/exams` || 'http://localhost:8083/api/exams';
+// const EXAM_BASE = API_GATEWAY_BASE || 'http://localhost:8083';
+const NOTIF_BASE = API_GATEWAY_BASE || 'http://localhost:8089';
+const FEEDBACK_BASE = API_GATEWAY_BASE || 'http://localhost:8087';
+const CERTIFICATE_BASE = API_GATEWAY_BASE || 'http://localhost:8084/api/certificate';
+const ANALYTICS_BASE = API_GATEWAY_BASE || 'http://localhost:8086';
+
+// SERVICES THROUGH PERSONAL PORT
+// const USER_BASE = process.env.REACT_APP_USER_SERVICE || 'http://localhost:8081';
+// const COURSE_BASE = process.env.REACT_APP_COURSE_SERVICE || 'http://localhost:8088';
+// const MATERIAL_BASE = process.env.REACT_APP_MATERIAL_SERVICE || 'http://localhost:8082';
+// const EXAM_BASE = process.env.REACT_APP_EXAM_SERVICE || 'http://localhost:8083/api/exams';
+// const NOTIF_BASE = process.env.REACT_APP_NOTIFICATION_SERVICE || 'http://localhost:8089';
+// const FEEDBACK_BASE = process.env.REACT_APP_FEEDBACK_SERVICE || 'http://localhost:8087';
+// const CERTIFICATE_BASE = process.env.REACT_APP_CERTIFICATE_SERVICE || 'http://localhost:8084/api/certificate';
 
 // Common authenticated fetch wrapper
 // async function authFetch(url, options = {}) {
@@ -615,6 +629,16 @@ export async function createBulkAssignment(payload) {
 // ============================================================================
 // APPROVALS
 // ============================================================================
+export async function getAllEnrollments() {
+  try {
+    const res = await authFetch(`${COURSE_BASE}/courses/enrollments/all`);
+    console.log("Get all enrollments from Backend: ", res);
+    return parseJson(res);
+  } catch (error) {
+    return { success: false, data: [] };
+  }
+}
+
 export async function getPendingEnrollments() {
   try {
     const res = await authFetch(`${COURSE_BASE}/courses/enrollments/pending`);
@@ -656,6 +680,7 @@ export async function uploadMaterial(formData) {
       method: "POST",
       body: formData,
     });
+    console.log("Return from backend um: ", res)
     return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: null, success: false, message: 'Failed to upload material' };
@@ -811,6 +836,7 @@ export async function getGivenFeedbacks(givenBy) {
 export async function getTeamFeedbackSummary(managerId) {
   try {
     const res = await authFetch(`${FEEDBACK_BASE}/api/feedback/team/${managerId}`);
+    console.log("get team summary:", res);
     return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: null, success: false, message: 'Failed to fetch team summary' };
@@ -1004,7 +1030,8 @@ export async function getAllResults() {
 
 export async function getAnalytics(filters = {}) {
   try {
-    let url = `http://localhost:8086/api/analytics`;
+    // let url = `http://localhost:8086/api/analytics`;
+    let url = `${ANALYTICS_BASE}/api/analytics`;
     if (filters.employeeId) url = `${url}/employee/${filters.employeeId}`;
     else if (filters.examId) url = `${url}/exam/${filters.examId}`;
     const res = await authFetch(url);

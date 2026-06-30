@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getUsers, getEnrollmentsByEmployee, getCourses } from '../services/api';
+import { getUsers, getEnrollmentsByEmployee, getCourses, authFetch } from '../services/api';
 
 export default function UserCourses({ user }) {
   const [employees, setEmployees] = useState([]);
@@ -54,14 +54,17 @@ export default function UserCourses({ user }) {
   const loadReminderSystemData = async () => {
     try {
       // Load pending reminders
-      const pendingRes = await fetch('http://localhost:8088/courses/admin/reminders/pending');
+      // const pendingRes = await fetch('http://localhost:8080/courses/admin/reminders/pending');
+      const pendingRes = await authFetch('http://localhost:8080/courses/admin/reminders/pending');
+
       const pendingData = await pendingRes.json();
       if (pendingData.success) {
         setPendingReminders(pendingData.data || []);
       }
 
       // Load system status
-      const statusRes = await fetch('http://localhost:8088/courses/admin/reminders/status');
+      // const statusRes = await fetch('http://localhost:8080/courses/admin/reminders/status');
+      const statusRes = await authFetch('http://localhost:8080/courses/admin/reminders/status');
       const statusData = await statusRes.json();
       if (statusData.success) {
         setSystemStatus(statusData.data);
@@ -91,7 +94,10 @@ export default function UserCourses({ user }) {
     if (window.confirm('Send automatic reminders to all employees with low progress after 8 days?')) {
       setSendingReminders(true);
       try {
-        const response = await fetch('http://localhost:8088/courses/admin/reminders/send-automatic', {
+        // const response = await fetch('http://localhost:8080/courses/admin/reminders/send-automatic', {
+        //   method: 'POST'
+        // });
+        const response = await authFetch('http://localhost:8080/courses/admin/reminders/send-automatic', {
           method: 'POST'
         });
         const result = await response.json();

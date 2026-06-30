@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getPendingEnrollments, approveEnrollment, rejectEnrollment } from "../services/api";
+import {getAllEnrollments, getPendingEnrollments, approveEnrollment, rejectEnrollment } from "../services/api";
 
 // 🆕 ADD POPUP MODAL COMPONENT
 function PopupModal({ show, type, title, message, onClose, onConfirm }) {
@@ -161,7 +161,9 @@ export default function CourseApprovals({ user }) {
   const loadEnrollments = async () => {
     setLoading(true);
     try {
-      const res = await getPendingEnrollments();
+      // const res = await getPendingEnrollments();
+      const res = await getAllEnrollments();
+      console.log("All enrollments load:", res);
       if (res.success) {
         let filteredData = res.data || [];
         
