@@ -188,7 +188,7 @@ export default function App() {
               element={
                 user.role === "ADMIN" || user.role === 'HR' || user.role === "MANAGER"
                   ? getProtectedAttendancePage()
-                  : <Navigate to="/" replace />
+                  : <EmployeeAttendance employeeId={user.employeeId || user.id} />
               }
             /> 
 

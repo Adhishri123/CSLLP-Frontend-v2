@@ -190,7 +190,6 @@ const OfferAcceptancePage = () => {
                                                 Congratulations, {employeeData.name}!
                                             </h4>
                                             <p className="mb-1"><strong>Position:</strong> {employeeData.designation}</p>
-                                            <p className="mb-0"><strong>Employee ID:</strong> {employeeId}</p>
                                         </div>
                                         <div className="fs-1">🎉</div>
                                     </div>
