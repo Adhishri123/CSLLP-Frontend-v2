@@ -23,14 +23,31 @@ export default function TakeExam({ user }) {
     async function fetchExam() {
       setLoading(true);
       try {
-        const data = await getExamById(examId);
-        if (data) {
-          setExam(data);
-          const qs = await getQuestions(examId);
-          setQuestions(qs || []);
+        // const data = await getExamById(examId);
+        const examResponse = await getExamById(examId);
+        console.log("Exam response :", examResponse);
+        if (examResponse?.data) {
+          setExam(examResponse.data);
+          console.log("Exam response data :", examResponse.data);
+          // const qs = await getQuestions(examId);
+          // console.log("Exam que :", qs);
+          // setQuestions(qs || []);
           
-          // Calculate total marks from questions
-          const totalMarks = qs?.reduce((sum, question) => sum + (question.marks || 1), 0) || 0;
+          // // Calculate total marks from questions
+          // const totalMarks = qs?.reduce((sum, question) => sum + (question.marks || 1), 0) || 0;
+          // setTotalExamMarks(totalMarks);
+
+          const questionResponse = await getQuestions(examId);
+          console.log("Question Response:", questionResponse);
+          const qs = questionResponse?.data || [];
+          console.log("Questions Array:", qs);
+          setQuestions(qs);
+
+          const totalMarks = qs.reduce(
+            (sum, question) => sum + (question.marks || 1),
+            0
+          );
+
           setTotalExamMarks(totalMarks);
         }
       } catch (err) {
@@ -76,12 +93,14 @@ export default function TakeExam({ user }) {
     setErrorMessage("");
     try {
       const eligibility = await checkExamEligibility(examId, user.id);
+      console.log("Check exam eligibility1 :", eligibility);
       
-      if (!eligibility.isEligible) {
-        setErrorMessage(eligibility.message || "You are not eligible to take this exam.");
+      if (!eligibility?.data?.isEligible) {
+        setErrorMessage(eligibility?.data?.message || "You are not eligible to take this exam.");
         return false;
       }
       return true;
+      console.log("Check exam eligibility2 :", eligibility);
     } catch (err) {
       setErrorMessage(err.message || "Failed to check eligibility.");
       return false;
@@ -92,13 +111,24 @@ export default function TakeExam({ user }) {
 
   const handleStart = async () => {
     const isEligible = await handleCheckEligibility();
-    if (!isEligible) return;
+      console.log("Check eligibility :", isEligible);
+      if (!isEligible) {
+      console.log("User is not eligible");
+      return;
+    }
 
     try {
+      console.log("Starting exam...");
       const response = await startAttempt(examId, user.id);
-      if (response) setAttemptStarted(true);
+      console.log("Start Attempt Response:", response);
+      // if (response) setAttemptStarted(true);
+      if (response?.success) {
+        setAttemptStarted(true);
+      } else {
+        setErrorMessage( response?.message || "Unable to start exam" );
+      }
     } catch (err) {
-      setErrorMessage(err.message || "Failed to start exam. Please try again.");
+      setErrorMessage(err.response?.data?.message || err.message || "Failed to start exam. Please try again.");
     }
   };
 
@@ -106,12 +136,25 @@ export default function TakeExam({ user }) {
     try {
       const payload = { employeeId: user.id, answers };
       const res = await submitAttempt(examId, payload);
-      if (res) {
+       console.log("Submit Response:", res);
+      if (res?.success) {
         // Calculate percentage based on total exam marks
-        const percentage = totalExamMarks > 0 ? (res.score / totalExamMarks) * 100 : 0;
+        // const percentage = totalExamMarks > 0 ? (res.score / totalExamMarks) * 100 : 0;
+        // setResult({
+        //   ...res,
+        //   percentage: percentage,
+        //   totalMarks: totalExamMarks
+        // });
+        const attempt = res.data;
+
+        const percentage =
+          totalExamMarks > 0
+            ? (attempt.score / totalExamMarks) * 100
+            : 0;
+
         setResult({
-          ...res,
-          percentage: percentage,
+          ...attempt,
+          percentage,
           totalMarks: totalExamMarks
         });
       }
@@ -128,15 +171,30 @@ export default function TakeExam({ user }) {
       try {
         const payload = { employeeId: user.id, answers };
         const res = await submitAttempt(examId, payload);
-        if (res) {
-          // Calculate percentage based on total exam marks
-          const percentage = totalExamMarks > 0 ? (res.score / totalExamMarks) * 100 : 0;
-          setResult({
-            ...res,
-            percentage: percentage,
-            totalMarks: totalExamMarks
-          });
-        }
+        // if (res) {
+        //   // Calculate percentage based on total exam marks
+        //   const percentage = totalExamMarks > 0 ? (res.score / totalExamMarks) * 100 : 0;
+        //   setResult({
+        //     ...res,
+        //     percentage: percentage,
+        //     totalMarks: totalExamMarks
+        //   });
+        // }
+        if (res?.success) {
+
+        const attempt = res.data;
+
+        const percentage =
+          totalExamMarks > 0
+            ? (attempt.score / totalExamMarks) * 100
+            : 0;
+
+        setResult({
+          ...attempt,
+          percentage,
+          totalMarks: totalExamMarks
+        });
+      }
       } catch (err) {
         console.error("Error auto-submitting exam:", err);
         setErrorMessage("Time's up! Your exam has been automatically submitted.");
@@ -168,6 +226,7 @@ export default function TakeExam({ user }) {
   }
 
   if (result) {
+    console.log("RESULT OBJECT:", result);
     // Use the calculated percentage from result
     const percentage = result.percentage || 0;
     const passed = percentage >= 50;
