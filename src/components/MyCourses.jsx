@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   getMyCourses,
   checkExamEligibility,
@@ -7,7 +8,8 @@ import {
   downloadMaterial,
   incrementProgress,
   markContentComplete,
-  enrollCourse// ✅ ADDED: Import enrollCourse function
+  enrollCourse,// ✅ ADDED: Import enrollCourse function
+  getExamByCourse
 } from "../services/api";
 
 export default function MyCourses({ user }) {
@@ -22,6 +24,7 @@ export default function MyCourses({ user }) {
   const [loadingMaterials, setLoadingMaterials] = useState(false);
   const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
   const [pdfBlobUrl, setPdfBlobUrl] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (user?.id) {
@@ -427,7 +430,41 @@ export default function MyCourses({ user }) {
     }
 
     try {
-      const res = await checkExamEligibility(numericEnrollmentId);
+      // const res = await checkExamEligibility(numericEnrollmentId);
+      // const employeeId = user?.id; // adjust after seeing user object
+
+      // console.log("Employee ID:", employeeId);
+
+      // const res = await checkExamEligibility(
+      //   numericEnrollmentId,
+      //   employeeId
+      // );
+
+      const employeeId = user?.id;
+
+      const courseId = course.course.id;
+
+      const examResponse =
+          await getExamByCourse(courseId);
+
+      const examId = examResponse.data.id;
+
+      console.log("Course ID:", courseId);
+      console.log("Exam ID:", examId);
+      console.log("Employee ID:", employeeId);
+
+      const eligibilityResponse =
+          await checkExamEligibility(
+              examId,
+              employeeId
+          );
+
+      console.log(
+          "Eligibility:",
+          eligibilityResponse
+      );
+
+      navigate(`/examinations/take/${examId}`);
     } catch (error) {
       console.error("Exam eligibility check failed:", error);
     }
@@ -773,9 +810,11 @@ export default function MyCourses({ user }) {
                            (displayStatus === "APPROVED" || displayStatus === "MANDATORY" || displayStatus === "COMPLETED") && (
                             <button
                               className="btn btn-success btn-sm"
-                              onClick={() =>
+                              onClick={() => {
+                                console.log("COURSE OBJECT:", item);
                                 handleTakeExam(item.id, courseTitle)
-                              }
+                                // handleTakeExam(item, courseTitle)
+                              }}
                             >
                               🎓 Take Exam
                             </button>

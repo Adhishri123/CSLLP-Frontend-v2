@@ -977,8 +977,19 @@ export async function updateExam(id, payload) {
   }
 }
 
+export async function getExamByCourse(courseId) {
+  try {
+    const res = await authFetch(`${EXAM_BASE}/course/${courseId}`);
+    return parseJson(res);
+  } catch (error) {
+    return { ok: false, body: null, data: null, success: false, message: 'Failed to fetch course' };
+  }
+}
+
 export async function checkExamEligibility(examId, employeeId) {
   try {
+    console.log("Exam ID:", examId);
+console.log("Employee ID:", employeeId);
     const res = await authFetch(`${EXAM_BASE}/${examId}/eligibility/${employeeId}`);
     return parseJson(res);
   } catch (error) {
@@ -991,6 +1002,9 @@ export async function startAttempt(examId, employeeId) {
     const res = await authFetch(`${EXAM_BASE}/${examId}/start?employeeId=${employeeId}`, {
       method: 'POST',
     });
+    console.log("START ATTEMPT RESPONSE:", res.data);
+    // console.log("Exam ID start attempt:", examId);
+    // console.log("Employee ID start attempt:", employeeId);
     return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: null, success: false, message: 'Failed to start attempt' };
