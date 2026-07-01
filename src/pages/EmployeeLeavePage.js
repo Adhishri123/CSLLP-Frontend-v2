@@ -634,7 +634,7 @@ const EmployeeLeavePage = () => {
         } else {
           // For leaves without a file
           response = await axiosInstance.post(
-            "${API_GATEWAY_BASE}/api/leaves/apply",
+            `${API_GATEWAY_BASE}/api/leaves/apply`,
             leaveData
           );
         }
