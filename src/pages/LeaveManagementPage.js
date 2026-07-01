@@ -99,65 +99,74 @@ const LeaveManagementPage = () => {
 
   // ENHANCED: Auto-fetch employee name when employee ID changes
   useEffect(() => {
-    const fetchEmployeeName = async () => {
-      if (allocationForm.employeeId && allocationForm.employeeId.length >= 3) {
-        setFetchingEmployee(true);
+  const fetchEmployeeName = async () => {
+    // Only search if employeeId has at least 1 character (changed from 3)
+    if (allocationForm.employeeId && allocationForm.employeeId.trim().length > 0) {
+      setFetchingEmployee(true);
+      
+      try {
+        // First, try to find in existing leave requests (quick local search)
+        const foundInLeaves = leaveRequests.find(
+          leave => leave.employeeId && 
+                  leave.employeeId.toString().toLowerCase() === allocationForm.employeeId.toString().toLowerCase()
+        );
         
+        if (foundInLeaves && foundInLeaves.employeeName) {
+          setAllocationForm(prev => ({
+            ...prev,
+            employeeName: foundInLeaves.employeeName
+          }));
+          setFetchingEmployee(false);
+          return;
+        }
+        
+        // Try the API call
         try {
-          // First, try to find in existing leave requests (quick local search)
-          const foundInLeaves = leaveRequests.find(
-            leave => leave.employeeId.toLowerCase() === allocationForm.employeeId.toLowerCase()
-          );
-          
-          if (foundInLeaves) {
-            setAllocationForm(prev => ({
-              ...prev,
-              employeeName: foundInLeaves.employeeName || ""
-            }));
-          } else {
-            // If not found locally, try API call to get employee details
-            try {
-              const employeeData = await getEmployeeDetails(allocationForm.employeeId);
-              if (employeeData && (employeeData.name || employeeData.employeeName)) {
-                setAllocationForm(prev => ({
-                  ...prev,
-                  employeeName: employeeData.name || employeeData.employeeName || ""
-                }));
-              } else {
-                // Clear name if employee not found
-                setAllocationForm(prev => ({
-                  ...prev,
-                  employeeName: ""
-                }));
-              }
-            } catch (apiError) {
-              console.warn("Could not fetch employee details from API:", apiError);
-              // If API fails, clear the name field
+          const employeeData = await getEmployeeDetails(allocationForm.employeeId);
+          if (employeeData) {
+            const name = employeeData.name || employeeData.employeeName || employeeData.fullName || "";
+            if (name) {
               setAllocationForm(prev => ({
                 ...prev,
-                employeeName: ""
+                employeeName: name
               }));
+              setFetchingEmployee(false);
+              return;
             }
           }
-        } catch (error) {
-          console.error("Error fetching employee name:", error);
-        } finally {
-          setFetchingEmployee(false);
+        } catch (apiError) {
+          console.warn("Could not fetch employee details from API:", apiError);
         }
-      } else if (allocationForm.employeeId === "") {
-        // Clear employee name if employee ID is cleared
+        
+        // If we reach here, employee not found - clear the name
         setAllocationForm(prev => ({
           ...prev,
           employeeName: ""
         }));
+        
+      } catch (error) {
+        console.error("Error fetching employee name:", error);
+        setAllocationForm(prev => ({
+          ...prev,
+          employeeName: ""
+        }));
+      } finally {
         setFetchingEmployee(false);
       }
-    };
+    } else {
+      // Clear employee name if employee ID is empty
+      setAllocationForm(prev => ({
+        ...prev,
+        employeeName: ""
+      }));
+      setFetchingEmployee(false);
+    }
+  };
 
-    // Add debounce to prevent too many API calls
-    const timeoutId = setTimeout(fetchEmployeeName, 500);
-    return () => clearTimeout(timeoutId);
-  }, [allocationForm.employeeId, leaveRequests]);
+  // Add debounce to prevent too many API calls
+  const timeoutId = setTimeout(fetchEmployeeName, 300);
+  return () => clearTimeout(timeoutId);
+}, [allocationForm.employeeId, leaveRequests]);
 
   // Open allocate modal with employee data if available
   const handleOpenAllocateModal = (employeeId = "", employeeName = "") => {

@@ -1,9 +1,11 @@
 // OfferAcceptancePage.jsx
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import axiosInstance from '../apis/axiosConfig'; // ✅ Add JWT import
+import axios from 'axios'; // ✅ Use plain axios instead of axiosInstance
 
 const OfferAcceptancePage = () => {
+    const API_GATEWAY_BASE = process.env.REACT_APP_API_GATEWAY || 'http://localhost:8080';
+
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const employeeId = searchParams.get('employeeId');
@@ -13,13 +15,6 @@ const OfferAcceptancePage = () => {
     const [message, setMessage] = useState('');
     const [employeeData, setEmployeeData] = useState(null);
 
-    // ❌ REMOVE this - No longer needed
-    // const getAuthHeader = () => {
-    //     const username = "admin@gmail.com";
-    //     const password = "Admin@123";
-    //     return "Basic " + btoa(`${username}:${password}`);
-    // };
-
     useEffect(() => {
         if (employeeId) {
             checkStatus();
@@ -27,24 +22,33 @@ const OfferAcceptancePage = () => {
         }
     }, [employeeId]);
 
-    // ✅ UPDATED: Fetch employee data with JWT
+    // ✅ Use plain axios (no auth required for public endpoints)
     const fetchEmployeeData = async () => {
         try {
-            const response = await axiosInstance.get(`http://localhost:8088/api/employees/${employeeId}/package`);
+            // Public endpoint - should not require authentication
+            const response = await axios.get(`${API_GATEWAY_BASE}/api/users/${employeeId}/public`);
             if (response.data) {
                 setEmployeeData(response.data);
-            } else {
-                console.warn("Could not fetch employee data, using default info");
             }
         } catch (error) {
             console.error("Error fetching employee data:", error);
+            // Try fallback endpoint without /public
+            try {
+                const response = await axios.get(`${API_GATEWAY_BASE}/api/users/${employeeId}`);
+                if (response.data) {
+                    setEmployeeData(response.data);
+                }
+            } catch (fallbackError) {
+                console.warn("Could not fetch employee data, using default info");
+            }
         }
     };
 
-    // ✅ UPDATED: Check status with JWT
+    // ✅ Use plain axios for public offer status
     const checkStatus = async () => {
         try {
-            const response = await axiosInstance.get(`http://localhost:8092/api/payroll/offer-letter/status/${employeeId}`);
+            // Public endpoint - should not require authentication
+            const response = await axios.get(`${API_GATEWAY_BASE}/api/payroll/offer-letter/status/${employeeId}`);
             if (response.data) {
                 setStatus(response.data);
             }
@@ -54,13 +58,13 @@ const OfferAcceptancePage = () => {
         }
     };
 
-    // ✅ UPDATED: Accept offer with JWT
+    // ✅ Use plain axios for accepting offer (public)
     const handleAccept = async () => {
         setLoading(true);
         setMessage('');
         try {
-            const response = await axiosInstance.post(
-                'http://localhost:8092/api/payroll/offer-letter/accept',
+            const response = await axios.post(
+                `${API_GATEWAY_BASE}/api/payroll/offer-letter/accept`,
                 null,
                 {
                     params: { employeeId: employeeId }
@@ -80,57 +84,38 @@ const OfferAcceptancePage = () => {
             }
         } catch (error) {
             console.error('Accept offer error:', error);
-            if (error.response?.status === 401) {
-                setMessage('❌ Authentication failed. Please contact HR for a valid offer link.');
-            } else {
-                setMessage('❌ Error accepting offer: ' + (error.response?.data?.message || error.message));
-            }
+            setMessage('❌ Error accepting offer: ' + (error.response?.data?.message || error.message));
         } finally {
             setLoading(false);
         }
     };
 
-    // ✅ UPDATED: Download offer letter with JWT
+    // ✅ Use plain axios for downloading (public after acceptance)
     const handleDownload = async () => {
         setDownloadLoading(true);
         setMessage('');
         try {
             console.log("📥 Attempting to download offer letter for:", employeeId);
             
-            const response = await axiosInstance.get(
-                `http://localhost:8092/api/payroll/offer-letter/download`,
+            const response = await axios.get(
+                `${API_GATEWAY_BASE}/api/payroll/offer-letter/download`,
                 {
                     params: { employeeId: employeeId },
                     responseType: 'blob'
                 }
             );
 
-            console.log("📊 Download response status:", response.status);
-
             const blob = response.data;
-            console.log("📄 PDF blob received, size:", blob.size);
-
+            
             if (blob.size === 0) {
                 throw new Error('Received empty PDF file');
             }
 
-            // Check if response is actually an error message (when blob is JSON)
-            if (blob.type === 'application/json') {
-                const text = await blob.text();
-                try {
-                    const errorData = JSON.parse(text);
-                    throw new Error(errorData.message || 'Failed to download offer letter');
-                } catch {
-                    throw new Error('Failed to download offer letter');
-                }
-            }
-
-            // Create filename with employee name
+            // Create filename
             const fileName = employeeData && employeeData.name 
                 ? `Offer_Letter_${employeeData.name.replace(/\s+/g, '_')}.pdf`
                 : `Offer_Letter_${employeeId}.pdf`;
             
-            // Create download link
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -155,7 +140,7 @@ const OfferAcceptancePage = () => {
             setDownloadLoading(false);
         }
     };
-
+    
     if (!employeeId) {
         return (
             <div className="container mt-5">
@@ -190,7 +175,6 @@ const OfferAcceptancePage = () => {
                                                 Congratulations, {employeeData.name}!
                                             </h4>
                                             <p className="mb-1"><strong>Position:</strong> {employeeData.designation}</p>
-                                            <p className="mb-0"><strong>Employee ID:</strong> {employeeId}</p>
                                         </div>
                                         <div className="fs-1">🎉</div>
                                     </div>

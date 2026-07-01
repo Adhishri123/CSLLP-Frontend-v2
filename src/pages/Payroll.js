@@ -4,6 +4,8 @@ import axiosInstance from "../apis/axiosConfig"; // ✅ CHANGED: JWT import
 
 export default function Payroll() {
   // Real data states
+  const API_GATEWAY_BASE = process.env.REACT_APP_API_GATEWAY || 'http://localhost:8080';
+
   const [realPayslips, setRealPayslips] = useState([]);
   const [annualStructures, setAnnualStructures] = useState([]);
 
@@ -164,7 +166,7 @@ export default function Payroll() {
     
     try {
       // ✅ CHANGED: Use axiosInstance with JWT
-      const statusResponse = await axiosInstance.get(`http://localhost:8092/api/payroll/offer-letter/status/${employeeId}`);
+      const statusResponse = await axiosInstance.get(`${API_GATEWAY_BASE}/api/payroll/offer-letter/status/${employeeId}`);
 
       if (statusResponse.data && !statusResponse.data.accepted) {
         alert("❌ Offer must be accepted before downloading.\n\nPlease send the offer letter to the employee first and wait for them to accept it.");
@@ -173,7 +175,7 @@ export default function Payroll() {
 
       // ✅ CHANGED: Use axiosInstance with blob response
       const response = await axiosInstance.get(
-        `http://localhost:8092/api/payroll/offer-letter/download`,
+        `${API_GATEWAY_BASE}/api/payroll/offer-letter/download`,
         {
           params: { employeeId: employeeId },
           responseType: 'blob'
@@ -244,7 +246,7 @@ export default function Payroll() {
     
     try {
       // ✅ CHANGED: Use axiosInstance with JWT
-      const employeeResponse = await axiosInstance.get(`http://localhost:8081/api/users/${employeeId}`);
+      const employeeResponse = await axiosInstance.get(`${API_GATEWAY_BASE}/api/users/${employeeId}`);
 
       if (employeeResponse.data) {
         employeeEmail = employeeResponse.data.data.email || "";
@@ -276,7 +278,7 @@ export default function Payroll() {
     try {
       // ✅ CHANGED: Use axiosInstance with JWT
       const response = await axiosInstance.post(
-        `http://localhost:8092/api/payroll/offer-letter/send`,
+        `${API_GATEWAY_BASE}/api/payroll/offer-letter/send`,
         {
           employeeId: employeeId,
           employeeEmail: employeeEmail,
@@ -323,7 +325,7 @@ export default function Payroll() {
       
       // ✅ CHANGED: Use axiosInstance with JWT
       const response = await axiosInstance.post(
-        `http://localhost:8092/api/payroll/annual-structure`,
+        `${API_GATEWAY_BASE}/api/payroll/annual-structure`,
         null,
         {
           params: { employeeId: employeeId }
@@ -369,7 +371,7 @@ export default function Payroll() {
         const employeeId = annualFormData.employeeId.trim();
         
         // ✅ CHANGED: Use axiosInstance with JWT
-        const response = await axiosInstance.get(`http://localhost:8081/api/users/${employeeId}/package`);
+        const response = await axiosInstance.get(`${API_GATEWAY_BASE}/api/users/${employeeId}/package`);
 
         const employee = response.data;
         console.log("✅ Employee data received:", employee);
@@ -504,7 +506,7 @@ export default function Payroll() {
     try {
       console.log("🔍 Fetching annual structures...");
       // ✅ CHANGED: Use axiosInstance with JWT
-      const response = await axiosInstance.get("http://localhost:8092/api/payroll/annual-structures");
+      const response = await axiosInstance.get(`${API_GATEWAY_BASE}/api/payroll/annual-structures`);
       console.log("✅ Annual structures fetched:", response.data.length);
       setAnnualStructures(response.data);
       setCurrentPageStructures(1);
@@ -522,7 +524,7 @@ export default function Payroll() {
     try {
       console.log("🔍 Fetching payslips...");
       // ✅ CHANGED: Use axiosInstance with JWT
-      const response = await axiosInstance.get("http://localhost:8092/api/payroll/all");
+      const response = await axiosInstance.get(`${API_GATEWAY_BASE}/api/payroll/all`);
       console.log("✅ Payslips fetched:", response.data.length);
       setRealPayslips(response.data);
       setCurrentPagePayslips(1);
@@ -544,7 +546,7 @@ export default function Payroll() {
       console.log("🔍 Generating payslip...");
       // ✅ CHANGED: Use axiosInstance with JWT
       const response = await axiosInstance.post(
-        `http://localhost:8092/api/payroll/generate`,
+        `${API_GATEWAY_BASE}/api/payroll/generate`,
         null,
         {
           params: {
@@ -589,7 +591,7 @@ export default function Payroll() {
     try {
       // ✅ CHANGED: Use axiosInstance with JWT and blob response
       const response = await axiosInstance.get(
-        `http://localhost:8092/api/payroll/download-payslip/${payslipId}`,
+        `${API_GATEWAY_BASE}/api/payroll/download-payslip/${payslipId}`,
         { responseType: 'blob' }
       );
 
@@ -629,7 +631,7 @@ export default function Payroll() {
     try {
       // ✅ CHANGED: Use axiosInstance with JWT and blob response
       const response = await axiosInstance.get(
-        `http://localhost:8092/api/payroll/download-payslip/by-month`,
+        `${API_GATEWAY_BASE}/api/payroll/download-payslip/by-month`,
         {
           params: { employeeId, month, year },
           responseType: 'blob'

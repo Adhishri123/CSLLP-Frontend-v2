@@ -1,7 +1,7 @@
 import axiosInstance from "./axiosConfig";
-
+const API_GATEWAY_BASE = process.env.REACT_APP_API_GATEWAY || 'http://localhost:8080';
 const API = axiosInstance.create({
-  baseURL: "http://localhost:8081/api/employees",
+  baseURL: `${API_GATEWAY_BASE}/api/employees`,
 });
 
 // Always attach fresh credentials from localStorage

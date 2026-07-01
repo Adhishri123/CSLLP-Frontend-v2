@@ -21,6 +21,7 @@ import {
 } from "react-bootstrap";
 
 const AttendancePage = () => {
+  const API_GATEWAY_BASE = process.env.REACT_APP_API_GATEWAY || 'http://localhost:8080';
   const [attendance, setAttendance] = useState([]);
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [search, setSearch] = useState("");
