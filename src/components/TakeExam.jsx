@@ -910,6 +910,7 @@ const takeExamStyles = `
   background: transparent;
   border: 2px solid #3b82f6;
   color: #3b82f6;
+  
 }
 
 .btn-outline:hover {

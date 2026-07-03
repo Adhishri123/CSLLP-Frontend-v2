@@ -108,12 +108,28 @@ export default function Examinations({ user }) {
       const eligibility = await checkExamEligibility(examId, user.id);
       console.log('Eligibility result:', eligibility);
       
-      if (!eligibility.isEligible) {
-        setError(eligibility.message || "You are not eligible to take this exam.");
+      if (!eligibility?.data?.isEligible) {
+        setError(eligibility?.data?.message || eligibility?.message || "You are not eligible to take this exam.");
         return;
       }
 
-      await startAttempt(examId, user.id);
+      // await startAttempt(examId, user.id);
+      // navigate(`/examinations/take/${examId}`);
+
+      const startResponse = await startAttempt(examId, user.id);
+
+      console.log("Start Attempt Response:", startResponse);
+
+      if (!startResponse?.success) {
+        setError(
+          startResponse?.message ||
+          "Failed to start exam."
+        );
+        return;
+      }
+
+      console.log("Navigating...");
+      console.log("Navigate URL:", `/examinations/take/${examId}`);
       navigate(`/examinations/take/${examId}`);
     } catch (err) {
       console.error('Error in handleStartExam:', err);
