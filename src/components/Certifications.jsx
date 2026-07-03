@@ -205,8 +205,8 @@ export default function Certifications({ user }) {
         const enrichedCertificates = await enrichCertificateData(basicCertificates);
         
         console.log('🎉 Final enriched certificates:', enrichedCertificates);
-        // setCertificates(enrichedCertificates);
-        setCertificates(response.data);
+         setCertificates(enrichedCertificates);
+        // setCertificates(response.data);
 
         // Check if we're still getting placeholder names
         const hasPlaceholderNames = enrichedCertificates.some(cert => 
