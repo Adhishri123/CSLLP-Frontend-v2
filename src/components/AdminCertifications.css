@@ -1,0 +1,43 @@
+/* AdminCertifications.css */
+.admin-certifications .table td {
+  vertical-align: middle;
+}
+
+.admin-certifications .action-buttons {
+  display: flex;
+  gap: 5px;
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
+.admin-certifications .action-buttons .btn {
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  min-width: 70px;
+}
+
+.admin-certifications .action-buttons .btn:hover {
+  transform: scale(1.05);
+  transition: transform 0.2s ease;
+}
+
+.admin-certifications .badge {
+  font-size: 0.8rem;
+  padding: 6px 12px;
+}
+
+.admin-certifications .table thead th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  border-bottom: 2px solid #dee2e6;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .admin-certifications .action-buttons .btn {
+    padding: 2px 6px;
+    font-size: 0.7rem;
+    min-width: 50px;
+  }
+}

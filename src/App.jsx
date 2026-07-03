@@ -18,6 +18,7 @@ import MyCourses from "./components/MyCourses";
 import Examinations from "./components/Examinations";
 import TakeExam from "./components/TakeExam";
 import Certifications from "./components/Certifications";
+import AdminCertifications from "./components/AdminCertifications";
 import CourseManagement from "./components/CourseManagement";
 import CourseApprovals from "./components/CourseApprovals";
 import UserManagement from "./pages/UserManagement";
@@ -96,6 +97,15 @@ export default function App() {
     }
   };
 
+  // ✅ Helper function to get certification component based on role
+  const getCertificationComponent = () => {
+    if (user.role === "ADMIN" || user.role === "MANAGER") {
+      return <AdminCertifications user={user} />;
+    } else {
+      return <Certifications user={user} />;
+    }
+  };
+
   // ✅ If not logged in, check if we're on offer-accept page
   if (!user) {
     return (
@@ -149,8 +159,23 @@ export default function App() {
 
             <Route path="/examinations" element={<Examinations user={user} />} />
             <Route path="/examinations/take/:examId" element={<TakeExam user={user} />} /> {/* ✅ Added */}
-            <Route path="/certifications" element={<Certifications user={user} />} />
           {/* <Route path="/leaderboards" element={<Leaderboards user={user} />} /> */}
+
+          {/* ✅ UPDATED: Certifications Route - Role-based */}
+            <Route 
+              path="/certifications" 
+              element={getCertificationComponent()} 
+            />
+
+          {/* ✅ NEW: Admin Certification Management Route - Explicit path */}
+            <Route
+              path="/admin/certifications"
+              element={
+                user.role === "ADMIN" || user.role === "MANAGER" 
+                  ? <AdminCertifications user={user} />
+                  : <Navigate to="/certifications" replace />
+              }
+            />
 
           {/* Manager / Admin Pages */}
             <Route

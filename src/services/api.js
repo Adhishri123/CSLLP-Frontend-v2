@@ -12,7 +12,7 @@ const EXAM_BASE = `${API_GATEWAY_BASE}/api/exams` || 'http://localhost:8083/api/
 // const EXAM_BASE = API_GATEWAY_BASE || 'http://localhost:8083';
 const NOTIF_BASE = API_GATEWAY_BASE || 'http://localhost:8089';
 const FEEDBACK_BASE = API_GATEWAY_BASE || 'http://localhost:8087';
-const CERTIFICATE_BASE = API_GATEWAY_BASE || 'http://localhost:8084/api/certificate';
+const CERTIFICATE_BASE = `${API_GATEWAY_BASE}/api/certifications`;
 const ANALYTICS_BASE = API_GATEWAY_BASE || 'http://localhost:8086';
 
 // SERVICES THROUGH PERSONAL PORT
@@ -737,6 +737,7 @@ export const certificateAPI = {
       const res = await authFetch(`${CERTIFICATE_BASE}/employee/${employeeId}`);
       return parseJson(res);
     } catch (error) {
+      console.error('Error fetching employee certificates:', error);
       return { ok: false, body: null, data: [], success: false, message: 'Failed to fetch employee certificates' };
     }
   },
@@ -746,19 +747,144 @@ export const certificateAPI = {
       const res = await authFetch(`${CERTIFICATE_BASE}/employee/${employeeId}/download/${certificationId}`);
       return parseResponse(res);
     } catch (error) {
+      console.error('Error downloading employee certificate:', error);
       return { ok: false, body: null, data: null, success: false, message: 'Failed to download certificate' };
     }
   },
 
+  // ========== ADMIN/MANAGER ENDPOINTS ==========
+
+  // Get all certificates with optional filters
+  adminGetAllCertificates: async (filters = {}) => {
+    try {
+      const params = new URLSearchParams();
+      if (filters.employeeName) params.append('employeeName', filters.employeeName);
+      if (filters.courseName) params.append('courseName', filters.courseName);
+      if (filters.status) params.append('status', filters.status);
+      
+      const url = `${CERTIFICATE_BASE}/admin${params.toString() ? `?${params.toString()}` : ''}`;
+      
+      // Get creator ID from localStorage
+      const user = loadUserFromStorage();
+      const creatorId = user?.id || user?.userId;
+      
+      const res = await authFetch(url, {
+        headers: {
+          'X-Creator-Id': creatorId ? creatorId.toString() : ''
+        }
+      });
+      return parseJson(res);
+    } catch (error) {
+      console.error('Error fetching all certificates:', error);
+      return { ok: false, body: null, data: [], success: false, message: 'Failed to fetch certificates' };
+    }
+  },
+
+  // Generate certificate manually
+  adminGenerateCertificate: async (requestData) => {
+    try {
+      const user = loadUserFromStorage();
+      const creatorId = user?.id || user?.userId;
+      
+      if (!creatorId) {
+        throw new Error('Creator ID not found');
+      }
+      
+      const res = await authFetch(`${CERTIFICATE_BASE}/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Creator-Id': creatorId.toString()
+        },
+        body: JSON.stringify(requestData)
+      });
+      return parseJson(res);
+    } catch (error) {
+      console.error('Error generating certificate:', error);
+      return { ok: false, body: null, data: null, success: false, message: error.message || 'Failed to generate certificate' };
+    }
+  },
+
+  // Auto-generate certificate (checks eligibility automatically)
+  adminAutoGenerateCertificate: async (employeeId, courseId) => {
+    try {
+      const user = loadUserFromStorage();
+      const creatorId = user?.id || user?.userId;
+      
+      if (!creatorId) {
+        throw new Error('Creator ID not found');
+      }
+      
+      const res = await authFetch(`${CERTIFICATE_BASE}/auto-generate/${employeeId}/${courseId}`, {
+        method: 'POST',
+        headers: {
+          'X-Creator-Id': creatorId.toString()
+        }
+      });
+      return parseJson(res);
+    } catch (error) {
+      console.error('Error auto-generating certificate:', error);
+      return { ok: false, body: null, data: null, success: false, message: error.message || 'Failed to auto-generate certificate' };
+    }
+  },
+
+  // Download certificate (Admin/Manager)
+  adminDownloadCertificate: async (certificationId) => {
+    try {
+      const user = loadUserFromStorage();
+      const creatorId = user?.id || user?.userId;
+      
+      const res = await authFetch(`${CERTIFICATE_BASE}/admin/${certificationId}/download`, {
+        headers: {
+          'X-Creator-Id': creatorId ? creatorId.toString() : ''
+        }
+      });
+      return parseResponse(res);
+    } catch (error) {
+      console.error('Error downloading certificate:', error);
+      return { ok: false, body: null, data: null, success: false, message: 'Failed to download certificate' };
+    }
+  },
+
+  // Revoke certificate (Admin only)
+  adminRevokeCertificate: async (certificationId) => {
+    try {
+      const user = loadUserFromStorage();
+      const creatorId = user?.id || user?.userId;
+      
+      if (!creatorId) {
+        throw new Error('Creator ID not found');
+      }
+      
+      const res = await authFetch(`${CERTIFICATE_BASE}/admin/${certificationId}/revoke`, {
+        method: 'PUT',
+        headers: {
+          'X-Creator-Id': creatorId.toString()
+        }
+      });
+      return parseJson(res);
+    } catch (error) {
+      console.error('Error revoking certificate:', error);
+      return { ok: false, body: null, data: null, success: false, message: error.message || 'Failed to revoke certificate' };
+    }
+  },
+
+  // ========== LEGACY/EXISTING METHODS (Keep for backward compatibility) ==========
+  
+  // Existing method - keep as is
   generateCertificate: async (certificateData, creatorId) => {
     try {
       const res = await authFetch(`${CERTIFICATE_BASE}/generate`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Creator-Id': creatorId.toString() },
+        headers: { 
+          'Content-Type': 'application/json', 
+          'X-Creator-Id': creatorId ? creatorId.toString() : '' 
+        },
         body: JSON.stringify(certificateData)
       });
       return parseJson(res);
     } catch (error) {
+      console.error('Error generating certificate:', error);
       return { ok: false, body: null, data: null, success: false, message: 'Failed to generate certificate' };
     }
   },
@@ -773,6 +899,7 @@ export const certificateAPI = {
       const res = await authFetch(url);
       return parseJson(res);
     } catch (error) {
+      console.error('Error fetching all certificates:', error);
       return { ok: false, body: null, data: [], success: false, message: 'Failed to fetch certificates' };
     }
   }
