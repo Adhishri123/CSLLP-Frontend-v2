@@ -623,7 +623,7 @@ const EmployeeLeavePage = () => {
           formData.append("document", medicalDocument);
 
           response = await axiosInstance.post(
-            "${API_GATEWAY_BASE}/api/leaves/apply",
+            `${API_GATEWAY_BASE}/api/leaves/apply`,
             formData,
             {
               headers: {
