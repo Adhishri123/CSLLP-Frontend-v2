@@ -54,30 +54,52 @@ export default function AdminCertifications({ user }) {
   }, [certificateImageUrl]);
 
   const fetchCertificates = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const response = await certificateAPI.adminGetAllCertificates({
-        employeeName: filters.employeeName || undefined,
-        courseName: filters.courseName || undefined,
-        status: filters.status !== 'all' ? filters.status : undefined
+  try {
+    setLoading(true);
+    setError(null);
+
+    // Fetch everything from backend
+    const response = await certificateAPI.adminGetAllCertificates({
+      status: filters.status !== "all" ? filters.status : undefined
+    });
+
+    if (response?.success && Array.isArray(response.data)) {
+
+      // Add employee & course names
+      const enriched = await enrichCertificatesWithDetails(response.data);
+
+      // Filter on frontend
+      const filteredCertificates = enriched.filter((cert) => {
+
+        const employeeMatch =
+          !filters.employeeName ||
+          cert.employeeName
+            ?.toLowerCase()
+            .includes(filters.employeeName.toLowerCase());
+
+        const courseMatch =
+          !filters.courseName ||
+          cert.courseName
+            ?.toLowerCase()
+            .includes(filters.courseName.toLowerCase());
+
+        return employeeMatch && courseMatch;
       });
-      
-      if (response?.success && Array.isArray(response.data)) {
-        const enriched = await enrichCertificatesWithDetails(response.data);
-        setCertificates(enriched);
-      } else {
-        setCertificates([]);
-        setError('No certificates found');
-      }
-    } catch (err) {
-      console.error('Error fetching certificates:', err);
-      setError('Failed to load certificates');
-    } finally {
-      setLoading(false);
+
+      setCertificates(filteredCertificates);
+
+    } else {
+      setCertificates([]);
+      setError("No certificates found");
     }
-  };
+
+  } catch (err) {
+    console.error("Error fetching certificates:", err);
+    setError("Failed to load certificates");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const enrichCertificatesWithDetails = async (certificates) => {
     const enriched = [];
