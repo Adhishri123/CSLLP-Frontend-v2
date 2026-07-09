@@ -1,14 +1,15 @@
-* {
+/* * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-}
+} */
 
 .profile-container {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  min-height: 100vh;
-  padding: 20px;
+  /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+  /* min-height: 100vh; */
+  height: 100%;
+  /* padding: 20px; */
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -16,19 +17,23 @@
 
 .profile-card {
   background: white;
-  border-radius: 20px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-  overflow: hidden;
-  max-width: 1000px;
+  /* border-radius: 20px; */
+  /* box-shadow: 0 20px 40px rgba(0,0,0,0.1); */
+  /* overflow: hidden; */
+  /* max-width: 1000px; */
   width: 100%;
+  border-radius:10px;
+    overflow:hidden;
+    box-shadow:0 10px 30px rgba(0,0,0,.08);
   animation: fadeInUp 0.5s ease;
 }
 
 /* Profile Header */
 .profile-header {
-  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-  color: white;
-  padding: 40px;
+  background: linear-gradient(135deg, #3c556d 0%, #3b5066 100%);
+  color: rgb(243, 237, 237);
+  padding: 30px;
+  /* background:linear-gradient(135deg,#244ca0,#1e3a8a); */
 }
 
 .profile-photo-section {
@@ -167,18 +172,40 @@
 }
 
 .section-header {
-  margin-bottom: 30px;
+   display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:30px;
+    padding-bottom:18px;
+    border-bottom:1px solid #edf2f7;
 }
 
 .section-header h3 {
-  font-size: 1.8rem;
+   margin:0;
+    font-size:28px;
+    font-weight:700;
+    color:#1f2937;
+  /* font-size: 1.8rem;
   color: #2c3e50;
-  margin-bottom: 8px;
+  margin-bottom: 8px; */
 }
 
 .section-header p {
-  color: #7f8c8d;
-  font-size: 1.1rem;
+  /* color: #7f8c8d;
+  font-size: 1.1rem; */
+  margin-top:6px;
+    color:#6b7280;
+    font-size:15px;
+}
+
+.edit-profile-btn{
+    min-width:170px;
+    height:36px;
+    background: rgba(167, 159, 159, 0.842);
+}
+
+.edit-profile-btn:hover{
+    background: rgba(15, 15, 15, 0.842);
 }
 
 /* Info Grid */
@@ -197,6 +224,7 @@
   border-left: 4px solid #3498db;
   transition: all 0.3s ease;
   animation: fadeInUp 0.5s ease;
+  
 }
 
 .info-card:hover {
@@ -280,7 +308,7 @@
   margin-top: 30px;
   padding-top: 20px;
   border-top: 1px solid #e3e6f0;
-  justify-content: center;
+  justify-content: flex-end;
 }
 
 /* Button Styles */
@@ -296,16 +324,17 @@
   align-items: center;
   gap: 8px;
   font-size: 0.95rem;
+  width: 50%;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #6e7696 0%, #9e81bb 100%);
   color: white;
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 15px rgba(113, 132, 216, 0.219);
 }
 
 .btn-outline-secondary {
@@ -321,10 +350,10 @@
 }
 
 /* Action Buttons */
-.action-buttons {
+/* .action-buttons {
   text-align: center;
   margin-top: 30px;
-}
+} */
 
 /* Badge Styles */
 .badge {
