@@ -16,6 +16,7 @@ export default function MyCourses({ user }) {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState("grid");
+  const [showViewDropdown, setShowViewDropdown] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [showCourseContent, setShowCourseContent] = useState(false);
   const [courseMaterials, setCourseMaterials] = useState([]);
@@ -628,15 +629,16 @@ export default function MyCourses({ user }) {
     <div className="container-fluid">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
-          <h2 className="mb-1 fw-bold">📖 My Courses</h2>
-          <small className="text-muted">
+          {/* <h2 className="mb-1 fw-bold">📖 My Courses</h2> */}
+          <h2 className="mb-1 fw-bold"> My Courses</h2>
+          <small className="text-muted fs-5 mb-0">
             Access your courses, study materials, and track progress
           </small>
         </div>
         <div className="d-flex gap-2 align-items-center">
           {/* <span className="me-3">Welcome, {user?.firstName || 'User'}!</span> */}
-          <span className="me-3">Welcome, {user?.fullName || 'User'}!</span>
-          <div className="btn-group">
+          <span className="me-3 fs-5">Welcome, {user?.fullName || 'User'}</span>
+          {/* <div className="btn-group">
             <button
               className={`btn btn-outline-dark ${viewMode === "grid" ? "active" : ""}`}
               onClick={() => setViewMode("grid")}
@@ -649,58 +651,104 @@ export default function MyCourses({ user }) {
             >
               📋 List
             </button>
+          </div> */}
+          <div className="dropdown">
+            <button
+              className="btn btn-outline-dark dropdown-toggle"
+              type="button"
+              onClick={() => setShowViewDropdown(!showViewDropdown)}
+            >
+              👁️ View Mode (
+              {viewMode === "grid" ? "Grid" : "List"}
+              )
+            </button>
+
+            {showViewDropdown && (
+              <ul
+                className="dropdown-menu show"
+                style={{
+                  position: "absolute",
+                  inset: "auto auto auto 0"
+                }}
+              >
+                <li>
+                  <button
+                    className="dropdown-item"
+                    onClick={() => {
+                      setViewMode("grid");
+                      setShowViewDropdown(false);
+                    }}
+                  >
+                    ⏹️ Grid View
+                  </button>
+                </li>
+
+                <li>
+                  <button
+                    className="dropdown-item"
+                    onClick={() => {
+                      setViewMode("list");
+                      setShowViewDropdown(false);
+                    }}
+                  >
+                    📋 List View
+                  </button>
+                </li>
+              </ul>
+            )}
           </div>
-          <button className="btn btn-outline-primary" onClick={loadMyCourses}>
+          {/* <button className="btn btn-outline-primary" onClick={loadMyCourses}>
             🔄 Refresh
-          </button>
+          </button> */}
         </div>
       </div>
 
       {/* 🆕 UPDATED: Statistics Summary with Mandatory Courses */}
       {allCourses.length > 0 && (
-        <div className="row mb-4">
-          <div className="col-md-2">
-            <div className="card bg-primary text-white">
+        // <div className="row mb-4">
+        <div className="row row-cols-2 row-cols-sm-3 row-cols-md-3 row-cols-lg-6 g-3 mb-4">
+          <div className="col">
+            <div className="card bg-primary text-white h-100">
               <div className="card-body text-center py-3">
                 <h4>{allCourses.length}</h4>
                 <small>Total Courses</small>
               </div>
             </div>
           </div>
-          <div className="col-md-2">
-            <div className="card bg-danger text-white">
+          <div className="col">
+            <div className="card bg-danger text-white h-100">
               <div className="card-body text-center py-3">
                 <h4>{mandatoryCourses}</h4>
                 <small>Mandatory</small>
               </div>
             </div>
           </div>
-          <div className="col-md-2">
-            <div className="card bg-success text-white">
+          <div className="col">
+            <div className="card bg-success text-white h-100">
               <div className="card-body text-center py-3">
                 <h4>{completedCourses}</h4>
                 <small>Completed</small>
               </div>
             </div>
           </div>
-          <div className="col-md-2">
-            <div className="card bg-warning text-white">
+          <div className="col">
+            <div className="card bg-warning text-white h-100">
               <div className="card-body text-center py-3">
                 <h4>{inProgressCourses}</h4>
                 <small>In Progress</small>
               </div>
             </div>
           </div>
-          <div className="col-md-2">
-            <div className="card bg-info text-white">
+          <div className="col">
+            <div className="card bg-info text-white h-100">
               <div className="card-body text-center py-3">
                 <h4>{notStartedCourses}</h4>
                 <small>Not Started</small>
               </div>
             </div>
           </div>
-          <div className="col-md-2">
-            <div className="card bg-secondary text-white">
+          <div className="col">
+            <div className="card bg-secondary text-white h-100">
               <div className="card-body text-center py-3">
                 <h4>{pendingApprovalCourses}</h4>
                 <small>Pending Approval</small>
@@ -723,7 +771,8 @@ export default function MyCourses({ user }) {
         <>
           {/* 🆕 UPDATED: Grid View with Mandatory Course Support */}
           {viewMode === "grid" && (
-            <div className="row">
+            // <div className="row">
+            <div className="row row-cols-1 row-cols-md-2 g-4">
               {allCourses.map((item, index) => {
                 const isMandatory = isMandatoryCourse(item);
                 const courseTitle = getCourseTitle(item);
@@ -731,7 +780,11 @@ export default function MyCourses({ user }) {
                 const displayStatus = getDisplayStatus(item);
                 
                 return (
-                  <div key={index} className="col-md-6 col-lg-4 mb-4">
+                  // <div key={index} className="col-md-6 col-lg-4 mb-4">
+                  // <div key={index} className="col-12 col-md-6 mb-4">
+                  // <div key={index} className="col-12 col-lg-5 mb-4"> 
+                  // <div key={index} className="col-6 mb-4"> 
+                   <div key={index} className="col">
                     <div className={`card h-100 shadow-sm ${isMandatory ? 'border-danger' : ''}`}>
                       <div className="card-header">
                         <h5 className="card-title mb-1">

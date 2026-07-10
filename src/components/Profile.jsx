@@ -9,6 +9,16 @@ import {
 import MessagePopup from "./MessagePopup";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./Profile.css";
+import {
+User,
+ShieldCheck,
+Pencil,
+Mail,
+Phone,
+MapPin,
+Building2,
+Briefcase
+} from "lucide-react";
 
 export default function Profile() {
   const [user, setUser] = useState(null);
@@ -314,8 +324,19 @@ export default function Profile() {
           {!editing ? (
             <>
               <div className="section-header">
-                <h3>Personal Information</h3>
-                <p>View and manage your profile details</p>
+                <div>
+                  <h3>Personal Information</h3>
+                  <p>View and manage your profile details</p>
+                </div>
+                <div className="action-buttons">
+                  <button
+                    className=" edit-profile-btn"
+                    onClick={() => setEditing(true)}
+                  >
+                    {/* ✏️ Edit Profile */}
+                    <Pencil size={18}/> Edit Profile
+                  </button>
+                </div>
               </div>
 
               <div className="info-grid">
@@ -380,20 +401,20 @@ export default function Profile() {
                 </div>
               </div>
 
-              <div className="action-buttons">
+              {/* <div className="action-buttons">
                 <button
                   className="btn btn-primary"
                   onClick={() => setEditing(true)}
                 >
                   ✏️ Edit Profile
                 </button>
-              </div>
+              </div> */}
             </>
           ) : (
             <div className="edit-section">
               <div className="section-header">
                 <h3>Edit Profile</h3>
-                <p>Update your personal information</p>
+                {/* <p>Update your personal information</p> */}
               </div>
 
               <form onSubmit={handleSaveProfile} className="edit-form">
@@ -538,7 +559,8 @@ export default function Profile() {
 
                 <div className="form-actions">
                   <button type="submit" className="btn btn-primary">
-                    💾 Save Changes
+                    {/* 💾 Save Changes */}
+                    Save Changes
                   </button>
                   <button 
                     type="button" 
@@ -559,7 +581,8 @@ export default function Profile() {
                       });
                     }}
                   >
-                    ❌ Cancel
+                    {/* ❌ Cancel */}
+                    Cancel
                   </button>
                 </div>
               </form>
