@@ -1,48 +1,6 @@
-/* AdminCertifications.css */
-.admin-certifications .table td {
-  vertical-align: middle;
-}
+/* Certifications.css - Employee Certifications Dashboard */
 
-.admin-certifications .action-buttons {
-  display: flex;
-  gap: 5px;
-  flex-wrap: nowrap;
-  align-items: center;
-}
-
-.admin-certifications .action-buttons .btn {
-  padding: 4px 10px;
-  font-size: 0.8rem;
-  white-space: nowrap;
-  min-width: 70px;
-}
-
-.admin-certifications .action-buttons .btn:hover {
-  transform: scale(1.05);
-  transition: transform 0.2s ease;
-}
-
-.admin-certifications .badge {
-  font-size: 0.8rem;
-  padding: 6px 12px;
-}
-
-.admin-certifications .table thead th {
-  background-color: #f8f9fa;
-  font-weight: 600;
-  border-bottom: 2px solid #dee2e6;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .admin-certifications .action-buttons .btn {
-    padding: 2px 6px;
-    font-size: 0.7rem;
-    min-width: 50px;
-  }
-}
-
-/* ===== STATISTICS CARDS - FORCED SINGLE ROW ===== */
+/* ===== STATISTICS CARDS - Same as Admin ===== */
 .stats-row {
   width: 100%;
   margin-bottom: 1.5rem;
@@ -58,7 +16,6 @@
 .stat-card-wrapper {
   flex: 1 1 0;
   min-width: 0;
-  /* Prevents overflow */
   max-width: 25%;
 }
 
@@ -89,23 +46,18 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  /* REMOVED: background gradients */
   background: transparent !important;
 }
 
 .stat-icon {
   font-size: 1.5rem;
   line-height: 1;
-  /* Icon colors matching the border */
-  color: #764ba2;
-  /* Default color */
 }
 
-/* Individual icon colors without background */
+/* Individual stat colors */
 .stat-total .stat-icon {
   color: #764ba2;
 }
-
 .stat-total {
   border-left-color: #764ba2;
 }
@@ -113,25 +65,22 @@
 .stat-active .stat-icon {
   color: #38ef7d;
 }
-
 .stat-active {
   border-left-color: #38ef7d;
-}
-
-.stat-revoked .stat-icon {
-  color: #f45c43;
-}
-
-.stat-revoked {
-  border-left-color: #f45c43;
 }
 
 .stat-expired .stat-icon {
   color: #ffd200;
 }
-
 .stat-expired {
   border-left-color: #ffd200;
+}
+
+.stat-revoked .stat-icon {
+  color: #f45c43;
+}
+.stat-revoked {
+  border-left-color: #f45c43;
 }
 
 .stat-info {
@@ -157,13 +106,36 @@
   line-height: 1.2;
 }
 
-/* Optional: Add a subtle hover effect on icon */
+/* Icon hover animation */
 .stat-card:hover .stat-icon {
   transform: scale(1.1);
   transition: transform 0.3s ease;
 }
 
-/* Responsive: Stack on small screens if needed */
+/* ===== CERTIFICATE CARDS ===== */
+.employee-certifications .certificate-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.employee-certifications .certificate-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.employee-certifications .certificate-card .card-header {
+  border-bottom: none;
+}
+
+.employee-certifications .certificate-preview {
+  transition: all 0.3s ease;
+  min-height: 350px;
+}
+
+.employee-certifications .certificate-preview:hover {
+  border-color: #0d6efd !important;
+}
+
+/* ===== RESPONSIVE ADJUSTMENTS ===== */
 @media (max-width: 768px) {
   .stats-container {
     flex-wrap: wrap;
@@ -218,4 +190,53 @@
   .stat-value {
     font-size: 1.25rem;
   }
+
+  .employee-certifications .certificate-preview {
+    min-height: 250px;
+  }
+}
+
+/* ===== MODAL STYLES ===== */
+.modal.fade.show {
+  display: block;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal.fade.show .modal-dialog {
+  margin-top: 50px;
+}
+
+/* ===== BADGE STYLES ===== */
+.employee-certifications .badge {
+  font-size: 0.8rem;
+  padding: 6px 12px;
+}
+
+/* ===== TABLE/GRID STYLES ===== */
+.employee-certifications .card-footer .btn {
+  transition: all 0.2s ease;
+}
+
+.employee-certifications .card-footer .btn:hover {
+  transform: scale(1.02);
+}
+
+/* ===== SCROLLBAR STYLING ===== */
+.employee-certifications ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.employee-certifications ::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.employee-certifications ::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 10px;
+}
+
+.employee-certifications ::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }

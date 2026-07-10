@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { 
   getUserProfile, 
   updateUserProfile, 
+  uploadProfilePhoto,
+  getFullImageUrl,
   loadUserFromStorage 
 } from "../services/api";
 import MessagePopup from "./MessagePopup";
@@ -90,126 +92,114 @@ export default function Profile() {
   };
 
   const handleSaveProfile = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
+  
+  // Validate passwords if changing
+  if (formData.password && formData.password !== formData.confirmPassword) {
+    showMessage("❌ Passwords do not match", "error");
+    return;
+  }
+
+  if (formData.password && formData.password.length < 6) {
+    showMessage("❌ Password must be at least 6 characters", "error");
+    return;
+  }
+
+  try {
+    const updateData = {
+      fullName: formData.fullName,
+      phoneNumber: formData.phoneNumber,
+      address: formData.address,
+      designation: formData.designation,
+      department: formData.department
+    };
+
+    // Only include password if provided
+    if (formData.password) {
+      updateData.password = formData.password;
+    }
+
+    const res = await updateUserProfile(currentUser.id, updateData);
     
-    // Validate passwords if changing
-    if (formData.password && formData.password !== formData.confirmPassword) {
-      showMessage("❌ Passwords do not match", "error");
-      return;
-    }
-
-    if (formData.password && formData.password.length < 6) {
-      showMessage("❌ Password must be at least 6 characters", "error");
-      return;
-    }
-
-    try {
-      const updateData = {
-        // firstName: formData.firstName,
-        // lastName: formData.lastName
-        fullName: formData.fullName,
-        phoneNumber: formData.phoneNumber,
-        address: formData.address,
-        designation: formData.designation,
-        department: formData.department
-      };
-
-      // Only include password if provided
-      if (formData.password) {
-        updateData.password = formData.password;
-      }
-
-      const res = await updateUserProfile(currentUser.id, updateData);
+    if (res.success) {
+      const updatedUser = res.data;
+      setUser(updatedUser);
       
-      if (res.success) {
-        const updatedUser = res.data;
-        setUser(updatedUser);
-        
-        // Update local storage with new user data
-        const updatedCurrentUser = {
-          ...currentUser,
-          id: updatedUser.id,
-          // firstName: updatedUser.firstName,
-          // lastName: updatedUser.lastName,
-          fullName: updatedUser.fullName,
-          email: updatedUser.email,
-          phoneNumber: updatedUser.phoneNumber,
-          address: updatedUser.address,
-          designation: updatedUser.designation,
-          department: updatedUser.department
-        };
-        localStorage.setItem('csllp_user', JSON.stringify(updatedCurrentUser));
-        
-        showMessage("✅ Profile updated successfully!", "success");
-        setEditing(false);
-        setFormData(prev => ({ ...prev, password: "", confirmPassword: "" }));
-      } else {
-        showMessage("❌ Failed to update profile: " + (res.body?.message || "Unknown error"), "error");
-      }
-    } catch (error) {
-      console.error("Profile update error:", error);
-      showMessage("❌ Failed to update profile: " + error.message, "error");
+      // Update local storage with new user data
+      const updatedCurrentUser = {
+        ...currentUser,
+        id: updatedUser.id,
+        fullName: updatedUser.fullName,
+        email: updatedUser.email,
+        phoneNumber: updatedUser.phoneNumber,
+        address: updatedUser.address,
+        designation: updatedUser.designation,
+        department: updatedUser.department,
+        profilePhotoUrl: updatedUser.profilePhotoUrl // ← ADD THIS LINE
+      };
+      localStorage.setItem('csllp_user', JSON.stringify(updatedCurrentUser));
+      
+      showMessage("✅ Profile updated successfully!", "success");
+      setEditing(false);
+      setFormData(prev => ({ ...prev, password: "", confirmPassword: "" }));
+    } else {
+      showMessage("❌ Failed to update profile: " + (res.message || "Unknown error"), "error");
     }
-  };
+  } catch (error) {
+    console.error("Profile update error:", error);
+    showMessage("❌ Failed to update profile: " + error.message, "error");
+  }
+};
 
   const handlePhotoUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  const file = e.target.files[0];
+  if (!file) return;
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      showMessage("❌ Please select an image file", "error");
-      return;
-    }
+  // Validate file type
+  if (!file.type.startsWith('image/')) {
+    showMessage("❌ Please select an image file", "error");
+    return;
+  }
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      showMessage("❌ Image size should be less than 5MB", "error");
-      return;
-    }
+  // Validate file size (max 5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    showMessage("❌ Image size should be less than 5MB", "error");
+    return;
+  }
 
-    setUploadingPhoto(true);
+  setUploadingPhoto(true);
 
-    try {
-      // In a real application, you would upload the file to a server
-      // and get back a URL, then update the profile with that URL
+  try {
+    // Create FormData for file upload
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    // Upload the photo using the new API function
+    const response = await uploadProfilePhoto(currentUser.id, formData);
+    
+    if (response.success) {
+      const updatedUser = response.data;
+      setUser(updatedUser);
       
-      // For now, we'll simulate the upload process
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Create a local URL for preview (in real app, this would be from your server)
-      const localUrl = URL.createObjectURL(file);
-      
-      // Update profile with the new photo URL
-      const updateData = {
-        profilePhotoUrl: localUrl
+      // Update local storage with new user data
+      const updatedCurrentUser = {
+        ...currentUser,
+        profilePhotoUrl: updatedUser.profilePhotoUrl
       };
-
-      const res = await updateUserProfile(currentUser.id, updateData);
+      localStorage.setItem('csllp_user', JSON.stringify(updatedCurrentUser));
       
-      if (res.ok && res.body && res.body.success) {
-        const updatedUser = res.body.data;
-        setUser(updatedUser);
-        
-        // Update local storage
-        const updatedCurrentUser = {
-          ...currentUser,
-          profilePhotoUrl: updatedUser.profilePhotoUrl
-        };
-        localStorage.setItem('csllp_user', JSON.stringify(updatedCurrentUser));
-        
-        showMessage("✅ Profile photo updated successfully!", "success");
-      } else {
-        showMessage("❌ Failed to update profile photo", "error");
-      }
-    } catch (error) {
-      console.error("Photo upload error:", error);
-      showMessage("❌ Failed to upload photo: " + error.message, "error");
-    } finally {
-      setUploadingPhoto(false);
-      e.target.value = ''; // Reset file input
+      showMessage("✅ Profile photo updated successfully!", "success");
+    } else {
+      showMessage("❌ Failed to update profile photo: " + (response.message || "Unknown error"), "error");
     }
-  };
+  } catch (error) {
+    console.error("Photo upload error:", error);
+    showMessage("❌ Failed to upload photo: " + (error.message || "Unknown error"), "error");
+  } finally {
+    setUploadingPhoto(false);
+    e.target.value = ''; // Reset file input
+  }
+};
 
   const getRoleBadge = (role) => {
     const roleConfig = {

@@ -63,7 +63,7 @@ export async function authFetch(url, options = {}) {
 // ============================================================================
 async function parseResponse(response) {
   const contentType = response.headers.get('content-type');
-  
+
   try {
     if (contentType && contentType.includes('application/json')) {
       const body = await response.json();
@@ -113,17 +113,17 @@ async function parseResponse(response) {
 //   return await parseResponse(res);
 // }
 async function parseJson(res) {
-  if(res.status === 401) {
+  if (res.status === 401) {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
 
-    alert ("Session expired. Please login again.");
+    alert("Session expired. Please login again.");
 
     window.location.href = "/";
     throw new Error("Session expired");
   }
   const data = await res.json();
-  if(!res.ok) {
+  if (!res.ok) {
     throw new Error(data.message || "Something went wrong");
   }
   return data;
@@ -182,11 +182,11 @@ export function isAdminOrManager(user) {
 // USER SERVICE
 // ============================================================================
 
-export async function authLogin({email, password, role}) {
+export async function authLogin({ email, password, role }) {
   const res = await fetch(`${USER_BASE}/api/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({email, password, role}),
+    body: JSON.stringify({ email, password, role }),
   });
   return parseJson(res);
 }
@@ -277,10 +277,10 @@ export async function getManagers() {
 }
 
 export async function getUserProfile(userId) {
-  
-    console.log("Loading profile for:", userId);
-    const res = await authFetch(`${USER_BASE}/api/users/profile/${userId}`);
-    console.log("Profile API Status:", res.status);
+
+  console.log("Loading profile for:", userId);
+  const res = await authFetch(`${USER_BASE}/api/users/profile/${userId}`);
+  console.log("Profile API Status:", res.status);
   return parseJson(res);
 }
 
@@ -294,7 +294,7 @@ export async function updateUser(id, payload) {
 
 export async function softDeleteUser(id) {
   const res = await authFetch(`${USER_BASE}/api/users/${id}`, {
-     method: 'DELETE', 
+    method: 'DELETE',
   });
   return parseJson(res);
 }
@@ -337,6 +337,77 @@ export async function getManagerTeamEmployees(managerId) {
     return { ok: false, body: null, data: [], success: false, message: 'Failed to fetch team' };
   }
 }
+
+// Get all employees
+export async function getAllEmployees() {
+  try {
+    const res = await authFetch(`${USER_BASE}/api/users/role/EMPLOYEE`);
+    return parseJson(res);
+  } catch (error) {
+    console.error('Error fetching employees:', error);
+    return {
+      ok: false,
+      body: null,
+      data: [],
+      success: false,
+      message: 'Failed to fetch employees'
+    };
+  }
+}
+
+// Get active employees only
+export async function getActiveEmployees() {
+  try {
+    const res = await authFetch(`${USER_BASE}/api/users/employees/active`);
+    return parseJson(res);
+  } catch (error) {
+    console.warn('Active employees endpoint not found, falling back to all employees');
+    return getAllEmployees();
+  }
+}
+
+// Get employee summaries
+export async function getEmployeeSummaries() {
+  try {
+    const res = await authFetch(`${USER_BASE}/api/users/employees/summary`);
+    return parseJson(res);
+  } catch (error) {
+    console.error('Error fetching employee summaries:', error);
+    return {
+      ok: false,
+      body: null,
+      data: [],
+      success: false,
+      message: 'Failed to fetch employee summaries'
+    };
+  }
+}
+
+export const uploadProfilePhoto = async (userId, formData) => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${USER_BASE}/api/users/${userId}/profile-photo`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        // Don't set Content-Type header for FormData
+      },
+      body: formData
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to upload photo');
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Upload error:', error);
+    throw error;
+  }
+};
+
 
 // export async function getUsers(managerId) {
 //   const url = managerId
@@ -441,6 +512,23 @@ export async function getAllCoursesForAdmin() {
 
 export async function getCourseById(id) {
   return parseJson(await authFetch(`${COURSE_BASE}/courses/${id}`));
+}
+
+// Get course summaries
+export async function getCourseSummaries() {
+  try {
+    const res = await authFetch(`${COURSE_BASE}/courses/summary`);
+    return parseJson(res);
+  } catch (error) {
+    console.error('Error fetching course summaries:', error);
+    return {
+      ok: false,
+      body: null,
+      data: [],
+      success: false,
+      message: 'Failed to fetch course summaries'
+    };
+  }
 }
 
 export async function createCourse(payload) {
@@ -642,7 +730,7 @@ export async function getAllEnrollments() {
 export async function getPendingEnrollments() {
   try {
     const res = await authFetch(`${COURSE_BASE}/courses/enrollments/pending`);
-    console.log("Get pending enrollments:",res);
+    console.log("Get pending enrollments:", res);
     return parseJson(res);
   } catch (error) {
     return { ok: false, body: null, data: [], success: false, message: 'Failed to load pending enrollments' };
@@ -651,13 +739,13 @@ export async function getPendingEnrollments() {
 
 export async function approveEnrollment(id) {
   const res = await authFetch(`${COURSE_BASE}/courses/enrollments/${id}/approve`, { method: 'PUT' });
-  console.log("Get approvel enrollments:",res);
+  console.log("Get approvel enrollments:", res);
   return parseJson(res);
 }
 
 export async function rejectEnrollment(id) {
   const res = await authFetch(`${COURSE_BASE}/courses/enrollments/${id}/reject`, { method: 'PUT' });
-  console.log("Get rejected enrollments:",res);
+  console.log("Get rejected enrollments:", res);
   return parseJson(res);
 }
 
@@ -761,13 +849,13 @@ export const certificateAPI = {
       if (filters.employeeName) params.append('employeeName', filters.employeeName);
       if (filters.courseName) params.append('courseName', filters.courseName);
       if (filters.status) params.append('status', filters.status);
-      
+
       const url = `${CERTIFICATE_BASE}/admin${params.toString() ? `?${params.toString()}` : ''}`;
-      
+
       // Get creator ID from localStorage
       const user = loadUserFromStorage();
       const creatorId = user?.id || user?.userId;
-      
+
       const res = await authFetch(url, {
         headers: {
           'X-Creator-Id': creatorId ? creatorId.toString() : ''
@@ -785,11 +873,11 @@ export const certificateAPI = {
     try {
       const user = loadUserFromStorage();
       const creatorId = user?.id || user?.userId;
-      
+
       if (!creatorId) {
         throw new Error('Creator ID not found');
       }
-      
+
       const res = await authFetch(`${CERTIFICATE_BASE}/generate`, {
         method: 'POST',
         headers: {
@@ -810,11 +898,11 @@ export const certificateAPI = {
     try {
       const user = loadUserFromStorage();
       const creatorId = user?.id || user?.userId;
-      
+
       if (!creatorId) {
         throw new Error('Creator ID not found');
       }
-      
+
       const res = await authFetch(`${CERTIFICATE_BASE}/auto-generate/${employeeId}/${courseId}`, {
         method: 'POST',
         headers: {
@@ -833,7 +921,7 @@ export const certificateAPI = {
     try {
       const user = loadUserFromStorage();
       const creatorId = user?.id || user?.userId;
-      
+
       const res = await authFetch(`${CERTIFICATE_BASE}/admin/${certificationId}/download`, {
         headers: {
           'X-Creator-Id': creatorId ? creatorId.toString() : ''
@@ -851,11 +939,11 @@ export const certificateAPI = {
     try {
       const user = loadUserFromStorage();
       const creatorId = user?.id || user?.userId;
-      
+
       if (!creatorId) {
         throw new Error('Creator ID not found');
       }
-      
+
       const res = await authFetch(`${CERTIFICATE_BASE}/admin/${certificationId}/revoke`, {
         method: 'PUT',
         headers: {
@@ -870,15 +958,15 @@ export const certificateAPI = {
   },
 
   // ========== LEGACY/EXISTING METHODS (Keep for backward compatibility) ==========
-  
+
   // Existing method - keep as is
   generateCertificate: async (certificateData, creatorId) => {
     try {
       const res = await authFetch(`${CERTIFICATE_BASE}/generate`, {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json', 
-          'X-Creator-Id': creatorId ? creatorId.toString() : '' 
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Creator-Id': creatorId ? creatorId.toString() : ''
         },
         body: JSON.stringify(certificateData)
       });
@@ -1116,7 +1204,7 @@ export async function getExamByCourse(courseId) {
 export async function checkExamEligibility(examId, employeeId) {
   try {
     console.log("Exam ID:", examId);
-console.log("Employee ID:", employeeId);
+    console.log("Employee ID:", employeeId);
     const res = await authFetch(`${EXAM_BASE}/${examId}/eligibility/${employeeId}`);
     return parseJson(res);
   } catch (error) {
