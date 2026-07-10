@@ -1,5 +1,7 @@
+// Certifications.jsx (Employee Certifications Dashboard)
 import React, { useState, useEffect } from 'react';
 import { certificateAPI, getUserById, getCourseById } from '../services/api';
+import './Certifications.css';
 
 export default function Certifications({ user }) {
   const [certificates, setCertificates] = useState([]);
@@ -10,6 +12,7 @@ export default function Certifications({ user }) {
   const [selectedCertificate, setSelectedCertificate] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
   const [debugInfo, setDebugInfo] = useState('');
+  const [certificateImageUrl, setCertificateImageUrl] = useState(null);
 
   // Company logo path
   const companyLogo = '/images/logo.png';
@@ -17,6 +20,15 @@ export default function Certifications({ user }) {
   useEffect(() => {
     fetchCertificates();
   }, [user]);
+
+  // Cleanup URL object when component unmounts or certificate image changes
+  useEffect(() => {
+    return () => {
+      if (certificateImageUrl) {
+        URL.revokeObjectURL(certificateImageUrl);
+      }
+    };
+  }, [certificateImageUrl]);
 
   // Function to fetch employee details with enhanced debugging
   const fetchEmployeeDetails = async (employeeId) => {
@@ -72,7 +84,6 @@ export default function Certifications({ user }) {
           fetchCourseDetails(cert.courseId)
         ]);
 
-        // Debug what data we received
         const debugEntry = {
           certificateId: cert.id,
           employeeId: cert.employeeId,
@@ -86,21 +97,12 @@ export default function Certifications({ user }) {
         debugLog.push(debugEntry);
         console.log('📊 Data enrichment debug:', debugEntry);
 
-        // Enhanced name extraction with multiple fallbacks
-        let employeeName = `Employee ${cert.employeeId}`; // Default fallback
+        let employeeName = `Employee ${cert.employeeId}`;
         
         if (employeeData) {
-          // Try multiple possible name fields
           const nameFields = ['fullName', 'name', 'employeeName', 'username', 'firstName', 'lastName'];
           for (const field of nameFields) {
             if (employeeData[field] && employeeData[field] !== 'null' && employeeData[field].trim() !== '') {
-              // if (field === 'firstName' && employeeData.lastName) {
-              //   employeeName = `${employeeData.firstName} ${employeeData.lastName}`;
-              // } else if (field === 'firstName' && !employeeData.lastName) {
-              //   employeeName = employeeData.firstName;
-              // } else {
-              //   employeeName = employeeData[field];
-              // }
               if (field === 'fullName') {
                 employeeName = `${employeeData.fullName}`;
               } else if (field === 'firstName' && !employeeData.lastName) {
@@ -114,7 +116,7 @@ export default function Certifications({ user }) {
           }
         }
 
-        let courseName = `Course ${cert.courseId}`; // Default fallback
+        let courseName = `Course ${cert.courseId}`;
         if (courseData) {
           const courseFields = ['title', 'courseName', 'name', 'courseTitle'];
           for (const field of courseFields) {
@@ -153,7 +155,6 @@ export default function Certifications({ user }) {
       }
     }
 
-    // Set debug info
     setDebugInfo(JSON.stringify(debugLog, null, 2));
     return enrichedCertificates;
   };
@@ -177,11 +178,9 @@ export default function Certifications({ user }) {
       
       console.log('📦 Certificate API Response:', response);
       
-      // if (response && response.success && response.data) {
       if (response?.success && Array.isArray(response.data)) {
         console.log('✅ Certificates received:', response.data);
         
-        // First, create basic certificate objects
         const basicCertificates = response.data.map(cert => ({
           id: cert.id,
           employeeId: cert.employeeId,
@@ -193,7 +192,6 @@ export default function Certifications({ user }) {
           certificatePath: cert.certificatePath,
           createdAt: cert.createdAt,
           updatedAt: cert.updatedAt,
-          // Temporary placeholders
           employeeName: `Employee ${cert.employeeId}`,
           courseName: `Course ${cert.courseId}`,
           courseDescription: 'loading...'
@@ -201,14 +199,11 @@ export default function Certifications({ user }) {
 
         console.log('📋 Basic certificates before enrichment:', basicCertificates);
         
-        // Enrich with actual names
         const enrichedCertificates = await enrichCertificateData(basicCertificates);
         
         console.log('🎉 Final enriched certificates:', enrichedCertificates);
-         setCertificates(enrichedCertificates);
-        // setCertificates(response.data);
+        setCertificates(enrichedCertificates);
 
-        // Check if we're still getting placeholder names
         const hasPlaceholderNames = enrichedCertificates.some(cert => 
           cert.employeeName.includes('Employee ') || cert.courseName.includes('Course ')
         );
@@ -241,13 +236,29 @@ export default function Certifications({ user }) {
     }
   };
 
+  // Function to fetch certificate image/PDF for preview
+  const fetchCertificateImage = async (certificateId) => {
+    try {
+      const response = await certificateAPI.downloadEmployeeCertificate(
+        user.id, 
+        certificateId
+      );
+      if (response.ok && response.data instanceof Blob) {
+        const url = URL.createObjectURL(response.data);
+        setCertificateImageUrl(url);
+      }
+    } catch (err) {
+      console.error('Error fetching certificate image:', err);
+      setCertificateImageUrl(null);
+    }
+  };
+
   const handleDownload = async (certificate) => {
     try {
       setDownloading(certificate.id);
       
       console.log('📥 Downloading certificate:', certificate.id, 'for employee:', user.id);
       
-      // Add a small delay to show loading state
       await new Promise(resolve => setTimeout(resolve, 500));
       
       const response = await certificateAPI.downloadEmployeeCertificate(
@@ -273,7 +284,6 @@ export default function Certifications({ user }) {
         
         console.log('✅ Certificate downloaded successfully');
         
-        // Show success message
         alert(`✅ Certificate downloaded successfully!\n\nFile: ${link.download}`);
       } else {
         throw new Error(`Download failed with status: ${response.status}`);
@@ -301,6 +311,8 @@ export default function Certifications({ user }) {
   const handlePreview = (certificate) => {
     setSelectedCertificate(certificate);
     setShowPreview(true);
+    // Fetch certificate image/PDF when viewing
+    fetchCertificateImage(certificate.id);
   };
 
   const handleShare = (certificate) => {
@@ -392,10 +404,10 @@ export default function Certifications({ user }) {
     return (
       <div className="container-fluid">
         <div className="text-center p-5">
-          <div className="spinner-border text-success" role="status">
+          <div className="spinner-border text-primary" role="status">
             <span className="visually-hidden">Loading...</span>
           </div>
-          <p className="mt-3 text-muted">Loading your certificates from Config Server LLP...</p>
+          <p className="mt-3">Loading your certificates...</p>
         </div>
       </div>
     );
@@ -421,13 +433,13 @@ export default function Certifications({ user }) {
   }
 
   return (
-    <div className="container-fluid">
-      {/* Header Section */}
+    <div className="container-fluid employee-certifications">
+      {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
-          <h2 className="mb-1 fw-bold">🎓 My Certifications</h2>
-          <small className="text-muted">
-            View and download your course completion certificates issued by <strong>Config Server LLP</strong>
+          <h2 className="mb-1 fw-bold">My Certifications</h2>
+          <small className="text-muted" style={{ fontSize: "1rem" }}>
+            View and download your course completion certificates
           </small>
         </div>
         <div className="d-flex gap-2 align-items-center">
@@ -435,14 +447,15 @@ export default function Certifications({ user }) {
             className="form-select form-select-sm"
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
+            style={{ width: 'auto' }}
           >
-            <option value="all">All Certificates ({certificates.length})</option>
+            <option value="all">All ({certificates.length})</option>
             <option value="active">Active ({activeCertificates.length})</option>
             <option value="expired">Expired ({expiredCertificates.length})</option>
             <option value="revoked">Revoked ({revokedCertificates.length})</option>
           </select>
           <button 
-            className="btn btn-outline-success btn-sm"
+            className="btn btn-outline-primary btn-sm"
             onClick={handleRefresh}
             disabled={loading}
           >
@@ -451,25 +464,66 @@ export default function Certifications({ user }) {
         </div>
       </div>
 
-      {/* Error Alert (if any) */}
+      {/* Error Alert */}
       {error && (
-        <div className="alert alert-warning alert-dismissible fade show" role="alert">
+        <div className="alert alert-warning alert-dismissible fade show">
           <strong>Note:</strong> {error}
           <button type="button" className="btn-close" onClick={() => setError(null)}></button>
         </div>
       )}
 
-      {/* Debug Info Alert */}
-      {certificates.some(cert => cert.employeeName.includes('Employee ') || cert.courseName.includes('Course ')) && (
-        <div className="alert alert-info">
-          <strong>ℹ️ Info:</strong> Some certificate details are showing placeholder names. 
-          This usually means the system is having trouble fetching user/course information. 
-          The downloaded PDF should have the correct names.
-          <button className="btn btn-sm btn-outline-info ms-2" onClick={handleRefresh}>
-            Retry
-          </button>
+      {/* Statistics Cards - Same style as Admin */}
+      <div className="stats-row mb-4">
+        <div className="stats-container">
+          <div className="stat-card-wrapper">
+            <div className="stat-card stat-total">
+              <div className="stat-icon-wrapper">
+                <span className="stat-icon">📊</span>
+              </div>
+              <div className="stat-info">
+                <span className="stat-label">Total Certificates</span>
+                <span className="stat-value">{certificates.length}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="stat-card-wrapper">
+            <div className="stat-card stat-active">
+              <div className="stat-icon-wrapper">
+                <span className="stat-icon">✅</span>
+              </div>
+              <div className="stat-info">
+                <span className="stat-label">Active</span>
+                <span className="stat-value">{activeCertificates.length}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="stat-card-wrapper">
+            <div className="stat-card stat-expired">
+              <div className="stat-icon-wrapper">
+                <span className="stat-icon">⏰</span>
+              </div>
+              <div className="stat-info">
+                <span className="stat-label">Expired</span>
+                <span className="stat-value">{expiredCertificates.length}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="stat-card-wrapper">
+            <div className="stat-card stat-revoked">
+              <div className="stat-icon-wrapper">
+                <span className="stat-icon">🚫</span>
+              </div>
+              <div className="stat-info">
+                <span className="stat-label">Revoked</span>
+                <span className="stat-value">{revokedCertificates.length}</span>
+              </div>
+            </div>
+          </div>
         </div>
-      )}
+      </div>
 
       {/* Certificates Grid */}
       {certificates.length === 0 ? (
@@ -477,8 +531,8 @@ export default function Certifications({ user }) {
           <div className="text-muted mb-3" style={{ fontSize: '4rem' }}>🎓</div>
           <h4>No Certificates Yet</h4>
           <p className="text-muted mb-4">
-            Complete courses and pass exams to earn certificates from <strong>Config Server LLP</strong>. 
-            Your certificates will appear here once you've successfully completed courses and passed the required assessments.
+            Complete courses and pass exams to earn certificates. 
+            Your certificates will appear here once you've successfully completed courses.
           </p>
           <div className="d-flex justify-content-center gap-3">
             <a href="/my-courses" className="btn btn-primary">
@@ -490,332 +544,367 @@ export default function Certifications({ user }) {
           </div>
         </div>
       ) : (
-        <>
-          {/* Certificates Summary */}
-          <div className="row mb-4">
-            <div className="col-md-3">
-              <div className="card bg-success text-white">
-                <div className="card-body text-center">
-                  <h4>{activeCertificates.length}</h4>
-                  <small>Active Certificates</small>
-                </div>
-              </div>
-            </div>
-            <div className="col-md-3">
-              <div className="card bg-warning text-dark">
-                <div className="card-body text-center">
-                  <h4>{expiredCertificates.length}</h4>
-                  <small>Expired Certificates</small>
-                </div>
-              </div>
-            </div>
-            <div className="col-md-3">
-              <div className="card bg-danger text-white">
-                <div className="card-body text-center">
-                  <h4>{revokedCertificates.length}</h4>
-                  <small>Revoked Certificates</small>
-                </div>
-              </div>
-            </div>
-            <div className="col-md-3">
-              <div className="card bg-primary text-white">
-                <div className="card-body text-center">
-                  <h4>{certificates.length}</h4>
-                  <small>Total Certificates</small>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Certificates List - REMOVED ONLY CSLLP LEARNING PLATFORM TEXT, KEPT LOGO */}
-          <div className="row">
-            {filteredCertificates.map(certificate => (
-              <div key={certificate.id} className="col-md-6 col-lg-4 mb-4">
-                <div className={`card h-100 shadow-sm certificate-card ${
-                  certificate.status === 'active' ? 'border-success' :
-                  certificate.status === 'expired' ? 'border-warning' :
-                  'border-danger'
+        <div className="row">
+          {filteredCertificates.map(certificate => (
+            <div key={certificate.id} className="col-md-6 col-lg-4 mb-4">
+              <div className={`card h-100 shadow-sm certificate-card ${
+                certificate.status === 'active' ? 'border-success' :
+                certificate.status === 'expired' ? 'border-warning' :
+                'border-danger'
+              }`}>
+                <div className={`card-header text-white d-flex justify-content-between align-items-center ${
+                  certificate.status === 'active' ? 'bg-success' :
+                  certificate.status === 'expired' ? 'bg-warning' :
+                  'bg-danger'
                 }`}>
-                  <div className={`card-header text-white d-flex justify-content-between align-items-center ${
-                    certificate.status === 'active' ? 'bg-success' :
-                    certificate.status === 'expired' ? 'bg-warning' :
-                    'bg-danger'
+                  <div>
+                    <h6 className="card-title mb-0">Config Server LLP</h6>
+                    <small>Official Certificate</small>
+                  </div>
+                  <span className={`badge ${
+                    certificate.status === 'active' ? 'bg-light text-success' :
+                    certificate.status === 'expired' ? 'bg-dark text-warning' :
+                    'bg-light text-danger'
                   }`}>
-                    <div>
-                      <h6 className="card-title mb-0">Config Server LLP</h6>
-                      <small>Official Certificate</small>
-                    </div>
-                    <span className={`badge ${
-                      certificate.status === 'active' ? 'bg-light text-success' :
-                      certificate.status === 'expired' ? 'bg-dark text-warning' :
-                      'bg-light text-danger'
-                    }`}>
-                      {getStatusDisplayText(certificate.status)}
-                    </span>
-                  </div>
-                  
-                  <div className="card-body">
-                    <div className="certificate-preview border p-4 bg-white rounded">
-                      {/* Header with ONLY LOGO (REMOVED CSLLP Learning Platform text) */}
-                      <div className="d-flex justify-content-end align-items-start mb-3">
-                        {/* Company Logo in Right Corner - KEPT LOGO */}
-                        <div className="company-logo-placeholder bg-light border rounded d-flex align-items-center justify-content-center"
-                             style={{ width: '80px', height: '80px', fontSize: '10px', textAlign: 'center' }}>
-                          {companyLogo ? (
-                            <img 
-                              src={companyLogo} 
-                              alt="CSLLP Logo" 
-                              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                              onError={(e) => {
-                                e.target.style.display = 'none';
-                                e.target.nextSibling.style.display = 'block';
-                              }}
-                            />
-                          ) : null}
-                          <span style={{ display: companyLogo ? 'none' : 'block', padding: '5px' }}>
-                            CSLLP Logo
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Certificate Title */}
-                      <div className="text-center mb-3">
-                        <h4 className="fw-bold text-dark mb-1">CERTIFICATE</h4>
-                        <h5 className="fw-bold text-secondary">OF COMPLETION</h5>
-                      </div>
-
-                      {/* Presentation Text */}
-                      <div className="text-center mb-3">
-                        <p className="small text-dark mb-2">
-                          THIS CERTIFICATE IS PROUDLY PRESENTED TO
-                        </p>
-                      </div>
-
-                      {/* Employee Name */}
-                      <div className="text-center mb-3">
-                        <h3 className="fw-bold text-dark text-uppercase" style={{ 
-                          fontSize: '1.4rem', 
-                          lineHeight: '1.2',
-                          minHeight: '60px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          wordBreak: 'break-word'
-                        }}>
-                          {certificate.employeeName}
-                          {certificate.employeeName.includes('Employee ') && (
-                            <span className="badge bg-warning ms-2" title="Placeholder name - real name should appear in PDF">⚠️</span>
-                          )}
-                        </h3>
-                      </div>
-
-                      {/* Course Completion Text */}
-                      <div className="text-center mb-4">
-                        <p className="small text-dark">
-                          In acknowledgment of the successful completion of the{' '}
-                          <strong className="text-success">{certificate.courseName}</strong> through the 
-                          company's professional learning and development platform,{' '}
-                          <strong>{formatMonthYear(certificate.issueDate)}</strong>.
-                        </p>
-                      </div>
-
-                      {/* Separator */}
-                      <hr className="my-3" />
-
-                      {/* Certificate Details */}
-<div className="row small text-dark">
-  <div className="col-6">
-    <strong>Certificate No.</strong><br />
-    <span className="text-success">{certificate.verificationCode}</span>
-  </div>
-  <div className="col-6">
-    <strong>Issued On:</strong><br />
-    {formatDate(certificate.issueDate)}
-  </div>
-</div>
-
-                      {/* Verification Section */}
-                      <div className="row small text-dark mt-2">
-                        <div className="col-12 text-end">
-                          <strong>Certificate Verification</strong><br />
-                          Authorized Signatory<br />
-                          <strong>Mr. Dinesh Raywade</strong><br />
-                          Config Server LLP
-                        </div>
-                      </div>
-
-                      {/* Footer */}
-                      <div className="text-center mt-3 pt-2 border-top">
-                        <small className="text-muted">
-                          Verify at: CSLLP Learning Platform Portal
-                        </small>
+                    {getStatusDisplayText(certificate.status)}
+                  </span>
+                </div>
+                
+                <div className="card-body">
+                  <div className="certificate-preview border p-4 bg-white rounded">
+                    {/* Header with Logo */}
+                    <div className="d-flex justify-content-end align-items-start mb-3">
+                      <div className="company-logo-placeholder bg-light border rounded d-flex align-items-center justify-content-center"
+                           style={{ width: '80px', height: '80px', fontSize: '10px', textAlign: 'center' }}>
+                        {companyLogo ? (
+                          <img 
+                            src={companyLogo} 
+                            alt="CSLLP Logo" 
+                            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              e.target.nextSibling.style.display = 'block';
+                            }}
+                          />
+                        ) : null}
+                        <span style={{ display: companyLogo ? 'none' : 'block', padding: '5px' }}>
+                          CSLLP Logo
+                        </span>
                       </div>
                     </div>
 
-                    {/* Additional Info */}
-                    <div className="mt-3">
-                      <div className="row small text-muted">
-                        <div className="col-12 text-center">
-                          <strong>Employee:</strong> {certificate.employeeName} | 
-                          <strong> Course:</strong> {certificate.courseName}
-                        </div>
+                    {/* Certificate Title */}
+                    <div className="text-center mb-3">
+                      <h4 className="fw-bold text-dark mb-1">CERTIFICATE</h4>
+                      <h5 className="fw-bold text-secondary">OF COMPLETION</h5>
+                    </div>
+
+                    {/* Presentation Text */}
+                    <div className="text-center mb-3">
+                      <p className="small text-dark mb-2">
+                        THIS CERTIFICATE IS PROUDLY PRESENTED TO
+                      </p>
+                    </div>
+
+                    {/* Employee Name */}
+                    <div className="text-center mb-3">
+                      <h3 className="fw-bold text-dark text-uppercase" style={{ 
+                        fontSize: '1.4rem', 
+                        lineHeight: '1.2',
+                        minHeight: '60px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        wordBreak: 'break-word'
+                      }}>
+                        {certificate.employeeName}
+                      </h3>
+                    </div>
+
+                    {/* Course Completion Text */}
+                    <div className="text-center mb-4">
+                      <p className="small text-dark">
+                        In acknowledgment of the successful completion of the{' '}
+                        <strong className="text-success">{certificate.courseName}</strong> through the 
+                        company's professional learning and development platform,{' '}
+                        <strong>{formatMonthYear(certificate.issueDate)}</strong>.
+                      </p>
+                    </div>
+
+                    {/* Separator */}
+                    <hr className="my-3" />
+
+                    {/* Certificate Details */}
+                    <div className="row small text-dark">
+                      <div className="col-6">
+                        <strong>Certificate No.</strong><br />
+                        <span className="text-success">{certificate.verificationCode}</span>
                       </div>
+                      <div className="col-6">
+                        <strong>Issued On:</strong><br />
+                        {formatDate(certificate.issueDate)}
+                      </div>
+                    </div>
+
+                    {/* Verification Section */}
+                    <div className="row small text-dark mt-2">
+                      <div className="col-12 text-end">
+                        <strong>Certificate Verification</strong><br />
+                        Authorized Signatory<br />
+                        <strong>Mr. Dinesh Raywade</strong><br />
+                        Config Server LLP
+                      </div>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="text-center mt-3 pt-2 border-top">
+                      <small className="text-muted">
+                        Verify at: CSLLP Learning Platform Portal
+                      </small>
                     </div>
                   </div>
-                  
-                  <div className="card-footer bg-transparent">
-                    <div className="d-grid gap-2">
-                      <button 
-                        className={`btn ${
-                          certificate.status === 'active' ? 'btn-success' :
-                          certificate.status === 'expired' ? 'btn-warning' :
-                          'btn-danger'
-                        }`}
-                        onClick={() => handleDownload(certificate)}
-                        disabled={downloading === certificate.id || certificate.status === 'revoked'}
-                        title={certificate.status === 'revoked' ? 'This certificate has been revoked' : ''}
-                      >
-                        {downloading === certificate.id ? (
-                          <>
-                            <span className="spinner-border spinner-border-sm me-2" role="status"></span>
-                            Downloading...
-                          </>
-                        ) : (
-                          '📥 Download PDF Certificate'
-                        )}
-                      </button>
-                      
-                      <button 
-                        className="btn btn-outline-primary"
-                        onClick={() => handlePreview(certificate)}
-                      >
-                        👁️ Preview Certificate
-                      </button>
-                      
-                      <button 
-                        className="btn btn-outline-dark"
-                        onClick={() => handleShare(certificate)}
-                        disabled={certificate.status === 'revoked'}
-                      >
-                        📧 Share Certificate
-                      </button>
+
+                  {/* Additional Info */}
+                  <div className="mt-3">
+                    <div className="row small text-muted">
+                      <div className="col-12 text-center">
+                        <strong>Employee:</strong> {certificate.employeeName} | 
+                        <strong> Course:</strong> {certificate.courseName}
+                      </div>
                     </div>
                   </div>
                 </div>
+                
+                <div className="card-footer bg-transparent">
+                  <div className="d-grid gap-2">
+                    <button 
+                      className={`btn ${
+                        certificate.status === 'active' ? 'btn-success' :
+                        certificate.status === 'expired' ? 'btn-warning' :
+                        'btn-danger'
+                      }`}
+                      onClick={() => handleDownload(certificate)}
+                      disabled={downloading === certificate.id || certificate.status === 'revoked'}
+                      title={certificate.status === 'revoked' ? 'This certificate has been revoked' : ''}
+                    >
+                      {downloading === certificate.id ? (
+                        <>
+                          <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                          Downloading...
+                        </>
+                      ) : (
+                        '📥 Download PDF'
+                      )}
+                    </button>
+                    
+                    <button 
+                      className="btn btn-outline-primary"
+                      onClick={() => handlePreview(certificate)}
+                    >
+                      👁️ Preview
+                    </button>
+                    
+                    <button 
+                      className="btn btn-outline-dark"
+                      onClick={() => handleShare(certificate)}
+                      disabled={certificate.status === 'revoked'}
+                    >
+                      📧 Share
+                    </button>
+                  </div>
+                </div>
               </div>
-            ))}
-          </div>
-        </>
+            </div>
+          ))}
+        </div>
       )}
 
-      {/* Certificate Preview Modal - REMOVED ONLY CSLLP LEARNING PLATFORM TEXT, KEPT LOGO */}
+      {/* Preview Modal - Same style as Admin */}
       {showPreview && selectedCertificate && (
-        <div className="modal fade show d-block" style={{backgroundColor: 'rgba(0,0,0,0.5)'}} tabIndex="-1">
+        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} tabIndex="-1">
           <div className="modal-dialog modal-lg">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">Certificate Preview - {selectedCertificate.courseName}</h5>
+                <h5 className="modal-title">📄 Certificate Details</h5>
                 <button 
                   type="button" 
                   className="btn-close" 
-                  onClick={() => setShowPreview(false)}
+                  onClick={() => {
+                    setShowPreview(false);
+                    if (certificateImageUrl) {
+                      URL.revokeObjectURL(certificateImageUrl);
+                      setCertificateImageUrl(null);
+                    }
+                  }}
                 ></button>
               </div>
               <div className="modal-body">
-                <div className="certificate-full border p-5 bg-white rounded">
-                  {/* Header with ONLY LOGO (REMOVED CSLLP Learning Platform text) */}
-                  <div className="d-flex justify-content-end align-items-start mb-4">
-                    {/* Company Logo in Right Corner - KEPT LOGO */}
-                    <div className="company-logo-placeholder bg-light border rounded d-flex align-items-center justify-content-center"
-                         style={{ width: '120px', height: '120px', fontSize: '12px', textAlign: 'center' }}>
-                      {companyLogo ? (
-                        <img 
-                          src={companyLogo} 
-                          alt="CSLLP Logo" 
-                          style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                          onError={(e) => {
-                            e.target.style.display = 'none';
-                            e.target.nextSibling.style.display = 'block';
-                          }}
-                        />
-                      ) : null}
-                      <span style={{ display: companyLogo ? 'none' : 'block', padding: '8px' }}>
-                        CSLLP Logo
-                      </span>
+                {/* Certificate Preview */}
+                {certificateImageUrl && (
+                  <div className="certificate-preview mb-4" style={{
+                    border: '2px solid #ddd',
+                    borderRadius: '10px',
+                    overflow: 'hidden',
+                    background: 'white',
+                    boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+                  }}>
+                    <iframe
+                      src={certificateImageUrl}
+                      style={{ width: '100%', height: '500px', border: 'none' }}
+                      title="Certificate Preview"
+                    />
+                    <div className="text-center p-2 bg-light">
+                      <small className="text-muted">📄 Certificate Preview</small>
                     </div>
                   </div>
+                )}
 
-                  {/* Certificate Title */}
-                  <div className="text-center mb-4">
-                    <h2 className="fw-bold text-dark mb-1">CERTIFICATE</h2>
-                    <h3 className="fw-bold text-secondary">OF COMPLETION</h3>
-                  </div>
-
-                  {/* Presentation Text */}
-                  <div className="text-center mb-4">
-                    <p className="text-dark mb-3">
-                      THIS CERTIFICATE IS PROUDLY PRESENTED TO
-                    </p>
-                  </div>
-
-                  {/* Employee Name */}
-                  <div className="text-center mb-4">
-                    <h1 className="fw-bold text-dark text-uppercase" style={{ 
-                      fontSize: '2.5rem', 
-                      lineHeight: '1.1',
-                      minHeight: '100px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      wordBreak: 'break-word'
-                    }}>
-                      {selectedCertificate.employeeName}
-                      {selectedCertificate.employeeName.includes('Employee ') && (
-                        <span className="badge bg-warning ms-2 fs-6" title="Placeholder name - real name should appear in PDF">⚠️ Placeholder</span>
-                      )}
-                    </h1>
-                  </div>
-
-                  {/* Course Completion Text */}
-                  <div className="text-center mb-5">
-                    <p className="text-dark" style={{ fontSize: '1.1rem' }}>
-                      In acknowledgment of the successful completion of the{' '}
-                      <strong style={{ color: '#198754', fontSize: '1.2rem' }}>{selectedCertificate.courseName}</strong> through the 
-                      company's professional learning and development platform,{' '}
-                      <strong>{formatMonthYear(selectedCertificate.issueDate)}</strong>.
-                    </p>
-                  </div>
-
-                  {/* Separator */}
-                  <hr className="my-4" />
-
-                  {/* Certificate Details */}
-                  <div className="row text-dark">
-                    <div className="col-6">
-                      <strong>Certificate No.</strong><br />
-                      <span className="text-success">{selectedCertificate.verificationCode}</span>
+                {/* Fallback Certificate View */}
+                {!certificateImageUrl && (
+                  <div className="certificate-full border p-5 bg-white rounded">
+                    {/* Header with Logo */}
+                    <div className="d-flex justify-content-end align-items-start mb-4">
+                      <div className="company-logo-placeholder bg-light border rounded d-flex align-items-center justify-content-center"
+                           style={{ width: '120px', height: '120px', fontSize: '12px', textAlign: 'center' }}>
+                        {companyLogo ? (
+                          <img 
+                            src={companyLogo} 
+                            alt="CSLLP Logo" 
+                            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              e.target.nextSibling.style.display = 'block';
+                            }}
+                          />
+                        ) : null}
+                        <span style={{ display: companyLogo ? 'none' : 'block', padding: '8px' }}>
+                          CSLLP Logo
+                        </span>
+                      </div>
                     </div>
-                    <div className="col-6 text-end">
-                      <strong>Issued On:</strong><br />
-                      {formatDate(selectedCertificate.issueDate)}
+
+                    {/* Certificate Title */}
+                    <div className="text-center mb-4">
+                      <h2 className="fw-bold text-dark mb-1">CERTIFICATE</h2>
+                      <h3 className="fw-bold text-secondary">OF COMPLETION</h3>
+                    </div>
+
+                    {/* Presentation Text */}
+                    <div className="text-center mb-4">
+                      <p className="text-dark mb-3">
+                        THIS CERTIFICATE IS PROUDLY PRESENTED TO
+                      </p>
+                    </div>
+
+                    {/* Employee Name */}
+                    <div className="text-center mb-4">
+                      <h1 className="fw-bold text-dark text-uppercase" style={{ 
+                        fontSize: '2.5rem', 
+                        lineHeight: '1.1',
+                        minHeight: '100px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        wordBreak: 'break-word'
+                      }}>
+                        {selectedCertificate.employeeName}
+                      </h1>
+                    </div>
+
+                    {/* Course Completion Text */}
+                    <div className="text-center mb-5">
+                      <p className="text-dark" style={{ fontSize: '1.1rem' }}>
+                        In acknowledgment of the successful completion of the{' '}
+                        <strong style={{ color: '#198754', fontSize: '1.2rem' }}>{selectedCertificate.courseName}</strong> through the 
+                        company's professional learning and development platform,{' '}
+                        <strong>{formatMonthYear(selectedCertificate.issueDate)}</strong>.
+                      </p>
+                    </div>
+
+                    {/* Separator */}
+                    <hr className="my-4" />
+
+                    {/* Certificate Details */}
+                    <div className="row text-dark">
+                      <div className="col-6">
+                        <strong>Certificate No.</strong><br />
+                        <span className="text-success">{selectedCertificate.verificationCode}</span>
+                      </div>
+                      <div className="col-6 text-end">
+                        <strong>Issued On:</strong><br />
+                        {formatDate(selectedCertificate.issueDate)}
+                      </div>
+                    </div>
+
+                    {/* Verification Section */}
+                    <div className="row text-dark mt-4">
+                      <div className="col-12 text-end">
+                        <strong>Certificate Verification</strong><br />
+                        Authorized Signatory<br />
+                        <strong>Mr. Dinesh Raywade</strong><br />
+                        Config Server LLP
+                      </div>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="text-center mt-4 pt-3 border-top">
+                      <small className="text-muted">
+                        Verify at: CSLLP Learning Platform Portal
+                      </small>
                     </div>
                   </div>
+                )}
 
-                  {/* Verification Section */}
-                  <div className="row text-dark mt-4">
-                    <div className="col-12 text-end">
-                      <strong>Certificate Verification</strong><br />
-                      Authorized Signatory<br />
-                      <strong>Mr. Dinesh Raywade</strong><br />
-                      Config Server LLP
-                    </div>
+                {/* Certificate Details Card */}
+                <div className="card mt-3">
+                  <div className="card-header bg-light">
+                    <h6 className="mb-0">📋 Certificate Details</h6>
                   </div>
-
-                  {/* Footer */}
-                  <div className="text-center mt-4 pt-3 border-top">
-                    <small className="text-muted">
-                      Verify at: CSLLP Learning Platform Portal
-                    </small>
+                  <div className="card-body">
+                    <div className="row">
+                      <div className="col-md-6">
+                        <div className="mb-2">
+                          <label className="fw-bold">Certificate ID:</label>
+                          <div className="font-monospace">{selectedCertificate.id}</div>
+                        </div>
+                        <div className="mb-2">
+                          <label className="fw-bold">Status:</label>
+                          <div>
+                            <span className={`badge ${getStatusBadgeClass(selectedCertificate.status)}`} style={{ padding: '6px 12px' }}>
+                              {getStatusDisplayText(selectedCertificate.status)}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="mb-2">
+                          <label className="fw-bold">Employee Name:</label>
+                          <div>{selectedCertificate.employeeName}</div>
+                        </div>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="mb-2">
+                          <label className="fw-bold">Course Name:</label>
+                          <div>{selectedCertificate.courseName}</div>
+                        </div>
+                        <div className="mb-2">
+                          <label className="fw-bold">Issue Date:</label>
+                          <div>{formatDate(selectedCertificate.issueDate)}</div>
+                        </div>
+                        <div className="mb-2">
+                          <label className="fw-bold">Expiry Date:</label>
+                          <div>{selectedCertificate.expiryDate ? formatDate(selectedCertificate.expiryDate) : 'N/A'}</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="row mt-2">
+                      <div className="col-12">
+                        <label className="fw-bold">Verification Code:</label>
+                        <div>
+                          <code className="bg-light p-2 d-inline-block rounded">
+                            {selectedCertificate.verificationCode || 'N/A'}
+                          </code>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -823,7 +912,13 @@ export default function Certifications({ user }) {
                 <button 
                   type="button" 
                   className="btn btn-secondary" 
-                  onClick={() => setShowPreview(false)}
+                  onClick={() => {
+                    setShowPreview(false);
+                    if (certificateImageUrl) {
+                      URL.revokeObjectURL(certificateImageUrl);
+                      setCertificateImageUrl(null);
+                    }
+                  }}
                 >
                   Close
                 </button>
@@ -831,8 +926,16 @@ export default function Certifications({ user }) {
                   type="button" 
                   className="btn btn-success"
                   onClick={() => handleDownload(selectedCertificate)}
+                  disabled={downloading === selectedCertificate.id}
                 >
-                  Download PDF
+                  {downloading === selectedCertificate.id ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2"></span>
+                      Downloading...
+                    </>
+                  ) : (
+                    '📥 Download PDF'
+                  )}
                 </button>
               </div>
             </div>
@@ -840,7 +943,7 @@ export default function Certifications({ user }) {
         </div>
       )}
 
-      {/* Enhanced Debug Information */}
+      {/* Debug Information */}
       {process.env.NODE_ENV === 'development' && (
         <div className="mt-3 p-3 bg-light border rounded">
           <details>

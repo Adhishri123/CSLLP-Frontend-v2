@@ -1,12 +1,16 @@
 // AdminCertifications.jsx
-import React, { useState, useEffect } from 'react';
-import { certificateAPI, getUserById, getCourseById } from '../services/api';
+import React, { useState, useEffect, useRef } from 'react';
+import { certificateAPI, getUserById, getCourseById, getAllEmployees, getAllCourses } from '../services/api';
 import './AdminCertifications.css';
 
 export default function AdminCertifications({ user }) {
   const [certificates, setCertificates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [employees, setEmployees] = useState([]);
+  const [courses, setCourses] = useState([]);
+  const [loadingEmployees, setLoadingEmployees] = useState(false);
+  const [loadingCourses, setLoadingCourses] = useState(false);
   const [filters, setFilters] = useState({
     employeeName: '',
     courseName: '',
@@ -19,7 +23,18 @@ export default function AdminCertifications({ user }) {
   const [revoking, setRevoking] = useState(false);
   const [downloading, setDownloading] = useState(null);
   const [activeTab, setActiveTab] = useState('manual');
-  const [certificateImageUrl, setCertificateImageUrl] = useState(null); // Added state for certificate image
+  const [certificateImageUrl, setCertificateImageUrl] = useState(null);
+
+  // Searchable dropdown states
+  const [employeeSearchTerm, setEmployeeSearchTerm] = useState('');
+  const [courseSearchTerm, setCourseSearchTerm] = useState('');
+  const [isEmployeeDropdownOpen, setIsEmployeeDropdownOpen] = useState(false);
+  const [isCourseDropdownOpen, setIsCourseDropdownOpen] = useState(false);
+  const employeeDropdownRef = useRef(null);
+  const courseDropdownRef = useRef(null);
+  const employeeSearchInputRef = useRef(null);
+  const courseSearchInputRef = useRef(null);
+
   const [autoGenerateForm, setAutoGenerateForm] = useState({
     employeeId: '',
     courseId: ''
@@ -35,6 +50,8 @@ export default function AdminCertifications({ user }) {
 
   useEffect(() => {
     fetchCertificates();
+    fetchEmployees();
+    fetchCourses();
   }, [filters.status]);
 
   // Reset active tab when modal opens
@@ -53,53 +70,111 @@ export default function AdminCertifications({ user }) {
     };
   }, [certificateImageUrl]);
 
+  // Click outside handler for employee dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (employeeDropdownRef.current && !employeeDropdownRef.current.contains(event.target)) {
+        setIsEmployeeDropdownOpen(false);
+        setEmployeeSearchTerm('');
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Click outside handler for course dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (courseDropdownRef.current && !courseDropdownRef.current.contains(event.target)) {
+        setIsCourseDropdownOpen(false);
+        setCourseSearchTerm('');
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const fetchEmployees = async () => {
+    try {
+      setLoadingEmployees(true);
+      const response = await getAllEmployees();
+      if (response?.success && Array.isArray(response.data)) {
+        setEmployees(response.data);
+      } else {
+        setEmployees([]);
+      }
+    } catch (err) {
+      console.error('Error fetching employees:', err);
+      setEmployees([]);
+    } finally {
+      setLoadingEmployees(false);
+    }
+  };
+
+  const fetchCourses = async () => {
+    try {
+      setLoadingCourses(true);
+      const response = await getAllCourses();
+      if (response?.success && Array.isArray(response.data)) {
+        setCourses(response.data);
+      } else {
+        setCourses([]);
+      }
+    } catch (err) {
+      console.error('Error fetching courses:', err);
+      setCourses([]);
+    } finally {
+      setLoadingCourses(false);
+    }
+  };
+
   const fetchCertificates = async () => {
-  try {
-    setLoading(true);
-    setError(null);
+    try {
+      setLoading(true);
+      setError(null);
 
-    // Fetch everything from backend
-    const response = await certificateAPI.adminGetAllCertificates({
-      status: filters.status !== "all" ? filters.status : undefined
-    });
-
-    if (response?.success && Array.isArray(response.data)) {
-
-      // Add employee & course names
-      const enriched = await enrichCertificatesWithDetails(response.data);
-
-      // Filter on frontend
-      const filteredCertificates = enriched.filter((cert) => {
-
-        const employeeMatch =
-          !filters.employeeName ||
-          cert.employeeName
-            ?.toLowerCase()
-            .includes(filters.employeeName.toLowerCase());
-
-        const courseMatch =
-          !filters.courseName ||
-          cert.courseName
-            ?.toLowerCase()
-            .includes(filters.courseName.toLowerCase());
-
-        return employeeMatch && courseMatch;
+      // Fetch everything from backend
+      const response = await certificateAPI.adminGetAllCertificates({
+        status: filters.status !== "all" ? filters.status : undefined
       });
 
-      setCertificates(filteredCertificates);
+      if (response?.success && Array.isArray(response.data)) {
 
-    } else {
-      setCertificates([]);
-      setError("No certificates found");
+        // Add employee & course names
+        const enriched = await enrichCertificatesWithDetails(response.data);
+
+        // Filter on frontend
+        const filteredCertificates = enriched.filter((cert) => {
+
+          const employeeMatch =
+            !filters.employeeName ||
+            cert.employeeName
+              ?.toLowerCase()
+              .includes(filters.employeeName.toLowerCase());
+
+          const courseMatch =
+            !filters.courseName ||
+            cert.courseName
+              ?.toLowerCase()
+              .includes(filters.courseName.toLowerCase());
+
+          return employeeMatch && courseMatch;
+        });
+
+        setCertificates(filteredCertificates);
+
+      } else {
+        setCertificates([]);
+        setError("No certificates found");
+      }
+
+    } catch (err) {
+      console.error("Error fetching certificates:", err);
+      setError("Failed to load certificates");
+    } finally {
+      setLoading(false);
     }
-
-  } catch (err) {
-    console.error("Error fetching certificates:", err);
-    setError("Failed to load certificates");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const enrichCertificatesWithDetails = async (certificates) => {
     const enriched = [];
@@ -109,16 +184,16 @@ export default function AdminCertifications({ user }) {
           getUserById(cert.employeeId),
           getCourseById(cert.courseId)
         ]);
-        
+
         enriched.push({
           ...cert,
-          employeeName: employeeData?.data?.fullName || 
-                       employeeData?.data?.name || 
-                       employeeData?.data?.firstName || 
-                       `Employee ${cert.employeeId}`,
-          courseName: courseData?.data?.title || 
-                     courseData?.data?.name || 
-                     `Course ${cert.courseId}`,
+          employeeName: employeeData?.data?.fullName ||
+            employeeData?.data?.name ||
+            employeeData?.data?.firstName ||
+            `Employee ${cert.employeeId}`,
+          courseName: courseData?.data?.title ||
+            courseData?.data?.name ||
+            `Course ${cert.courseId}`,
           employeeEmail: employeeData?.data?.email || 'N/A'
         });
       } catch (error) {
@@ -151,16 +226,16 @@ export default function AdminCertifications({ user }) {
     try {
       setGenerating(true);
       setError(null);
-      
+
       const requestData = {
         employeeId: parseInt(manualGenerateForm.employeeId),
         courseId: parseInt(manualGenerateForm.courseId),
         issueDate: manualGenerateForm.issueDate || undefined,
         expiryDate: manualGenerateForm.expiryDate || undefined
       };
-      
+
       const response = await certificateAPI.adminGenerateCertificate(requestData);
-      
+
       if (response?.success) {
         alert('✅ Certificate generated successfully!');
         setShowModal(false);
@@ -181,12 +256,12 @@ export default function AdminCertifications({ user }) {
     try {
       setGenerating(true);
       setError(null);
-      
+
       const employeeId = parseInt(autoGenerateForm.employeeId);
       const courseId = parseInt(autoGenerateForm.courseId);
-      
+
       const response = await certificateAPI.adminAutoGenerateCertificate(employeeId, courseId);
-      
+
       if (response?.success) {
         alert('✅ Certificate auto-generated successfully!');
         setShowModal(false);
@@ -207,13 +282,13 @@ export default function AdminCertifications({ user }) {
     if (!window.confirm('⚠️ Are you sure you want to revoke this certificate?\n\nThis action cannot be undone.')) {
       return;
     }
-    
+
     try {
       setRevoking(true);
       setError(null);
-      
+
       const response = await certificateAPI.adminRevokeCertificate(certificateId);
-      
+
       if (response?.success) {
         alert('✅ Certificate revoked successfully!');
         fetchCertificates();
@@ -231,9 +306,9 @@ export default function AdminCertifications({ user }) {
   const handleDownloadCertificate = async (certificateId) => {
     try {
       setDownloading(certificateId);
-      
+
       const response = await certificateAPI.adminDownloadCertificate(certificateId);
-      
+
       if (response.ok && response.data instanceof Blob) {
         const blob = response.data;
         const url = window.URL.createObjectURL(blob);
@@ -244,7 +319,7 @@ export default function AdminCertifications({ user }) {
         link.click();
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
-        
+
         alert('✅ Certificate downloaded successfully!');
       } else {
         throw new Error('Download failed');
@@ -268,6 +343,10 @@ export default function AdminCertifications({ user }) {
       employeeId: '',
       courseId: ''
     });
+    setEmployeeSearchTerm('');
+    setCourseSearchTerm('');
+    setIsEmployeeDropdownOpen(false);
+    setIsCourseDropdownOpen(false);
   };
 
   const openGenerateModal = () => {
@@ -312,6 +391,382 @@ export default function AdminCertifications({ user }) {
     }
   };
 
+  // ========== SEARCHABLE DROPDOWN COMPONENTS ==========
+
+  // Employee Dropdown with Search
+  const EmployeeSearchDropdown = ({ value, onChange, disabled, placeholder, label, required }) => {
+    const [searchTerm, setSearchTerm] = useState('');
+    const [isOpen, setIsOpen] = useState(false);
+    const dropdownRef = useRef(null);
+    const inputRef = useRef(null);
+
+    // Filter employees based on search term
+    const filteredEmployees = employees.filter(employee => {
+      if (!searchTerm) return true;
+      const searchLower = searchTerm.toLowerCase();
+      const name = (employee.fullName || employee.name || employee.firstName || '').toLowerCase();
+      const email = (employee.email || '').toLowerCase();
+      const id = (employee.id || '').toString();
+      const designation = (employee.designation || '').toLowerCase();
+
+      return name.includes(searchLower) ||
+        email.includes(searchLower) ||
+        id.includes(searchLower) ||
+        designation.includes(searchLower);
+    });
+
+    const getSelectedEmployee = () => {
+      return employees.find(emp => emp.id === value);
+    };
+
+    const selectedEmployee = getSelectedEmployee();
+
+    // Click outside handler
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+          setIsOpen(false);
+          setSearchTerm('');
+        }
+      };
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const toggleDropdown = () => {
+      if (!disabled) {
+        setIsOpen(!isOpen);
+        if (!isOpen) {
+          setSearchTerm('');
+          setTimeout(() => {
+            if (inputRef.current) {
+              inputRef.current.focus();
+            }
+          }, 100);
+        }
+      }
+    };
+
+    const handleSelect = (employeeId) => {
+      onChange(employeeId);
+      setIsOpen(false);
+      setSearchTerm('');
+    };
+
+    return (
+      <div ref={dropdownRef} className="searchable-dropdown-wrapper">
+        {label && (
+          <label className="form-label fw-bold">
+            {label} {required && <span className="text-danger">*</span>}
+          </label>
+        )}
+        <div
+          className={`dropdown-input-wrapper ${isOpen ? 'focused' : ''}`}
+          style={{
+            position: 'relative',
+            border: '1px solid #ced4da',
+            borderRadius: '0.375rem',
+            backgroundColor: disabled ? '#e9ecef' : 'white',
+            cursor: disabled ? 'not-allowed' : 'pointer'
+          }}
+          onClick={toggleDropdown}
+        >
+          <div
+            style={{
+              padding: '0.375rem 0.75rem',
+              minHeight: '38px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              color: value && !disabled ? '#212529' : '#6c757d'
+            }}
+          >
+            <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {selectedEmployee ? (
+                <>
+                  <strong>{selectedEmployee.fullName || selectedEmployee.name || `Employee ${selectedEmployee.id}`}</strong>
+                  {selectedEmployee.email && <span className="text-muted ms-1">({selectedEmployee.email})</span>}
+                  {selectedEmployee.designation && <span className="text-muted ms-1">- {selectedEmployee.designation}</span>}
+                </>
+              ) : (
+                placeholder || 'Select an employee'
+              )}
+            </span>
+            <span style={{ marginLeft: '10px' }}>
+              {isOpen ? '▲' : '▼'}
+            </span>
+          </div>
+
+          {isOpen && !disabled && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 'calc(100% + 2px)',
+                left: 0,
+                right: 0,
+                maxHeight: '300px',
+                backgroundColor: 'white',
+                border: '1px solid #ced4da',
+                borderRadius: '0.375rem',
+                zIndex: 1000,
+                boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+              }}
+            >
+              <div style={{ padding: '8px', borderBottom: '1px solid #e9ecef' }}>
+                <input
+                  ref={inputRef}
+                  type="text"
+                  className="form-control form-control-sm"
+                  placeholder="Search employees by name, email, ID..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                  style={{ fontSize: '0.875rem' }}
+                />
+              </div>
+
+              <div style={{ maxHeight: '220px', overflow: 'auto' }}>
+                {loadingEmployees ? (
+                  <div className="text-center p-3">
+                    <div className="spinner-border spinner-border-sm text-primary" role="status">
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
+                    <div className="mt-1">Loading employees...</div>
+                  </div>
+                ) : filteredEmployees.length === 0 ? (
+                  <div className="text-center p-3 text-muted">
+                    {searchTerm ? `No results found for "${searchTerm}"` : 'No employees available'}
+                  </div>
+                ) : (
+                  filteredEmployees.map((employee) => (
+                    <div
+                      key={employee.id}
+                      className={`dropdown-option ${employee.id === value ? 'active' : ''}`}
+                      style={{
+                        padding: '8px 12px',
+                        cursor: 'pointer',
+                        borderBottom: '1px solid #f8f9fa',
+                        backgroundColor: employee.id === value ? '#e3f2fd' : 'transparent'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (employee.id !== value) {
+                          e.currentTarget.style.backgroundColor = '#f8f9fa';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (employee.id !== value) {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                        }
+                      }}
+                      onClick={() => handleSelect(employee.id)}
+                    >
+                      <div className="fw-bold">
+                        {employee.fullName || employee.name || employee.firstName || `Employee ${employee.id}`}
+                      </div>
+                      <div className="text-muted small">
+                        {employee.id && `ID: ${employee.id}`}
+                        {employee.email && ` • ${employee.email}`}
+                        {employee.designation && ` • ${employee.designation}`}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // Course Dropdown with Search
+  const CourseSearchDropdown = ({ value, onChange, disabled, placeholder, label, required }) => {
+    const [searchTerm, setSearchTerm] = useState('');
+    const [isOpen, setIsOpen] = useState(false);
+    const dropdownRef = useRef(null);
+    const inputRef = useRef(null);
+
+    // Filter courses based on search term
+    const filteredCourses = courses.filter(course => {
+      if (!searchTerm) return true;
+      const searchLower = searchTerm.toLowerCase();
+      const title = (course.title || course.name || '').toLowerCase();
+      const category = (course.category || '').toLowerCase();
+      const id = (course.id || '').toString();
+      const description = (course.description || '').toLowerCase();
+
+      return title.includes(searchLower) ||
+        category.includes(searchLower) ||
+        id.includes(searchLower) ||
+        description.includes(searchLower);
+    });
+
+    const getSelectedCourse = () => {
+      return courses.find(c => c.id === value);
+    };
+
+    const selectedCourse = getSelectedCourse();
+
+    // Click outside handler
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+          setIsOpen(false);
+          setSearchTerm('');
+        }
+      };
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const toggleDropdown = () => {
+      if (!disabled) {
+        setIsOpen(!isOpen);
+        if (!isOpen) {
+          setSearchTerm('');
+          setTimeout(() => {
+            if (inputRef.current) {
+              inputRef.current.focus();
+            }
+          }, 100);
+        }
+      }
+    };
+
+    const handleSelect = (courseId) => {
+      onChange(courseId);
+      setIsOpen(false);
+      setSearchTerm('');
+    };
+
+    return (
+      <div ref={dropdownRef} className="searchable-dropdown-wrapper">
+        {label && (
+          <label className="form-label fw-bold">
+            {label} {required && <span className="text-danger">*</span>}
+          </label>
+        )}
+        <div
+          className={`dropdown-input-wrapper ${isOpen ? 'focused' : ''}`}
+          style={{
+            position: 'relative',
+            border: '1px solid #ced4da',
+            borderRadius: '0.375rem',
+            backgroundColor: disabled ? '#e9ecef' : 'white',
+            cursor: disabled ? 'not-allowed' : 'pointer'
+          }}
+          onClick={toggleDropdown}
+        >
+          <div
+            style={{
+              padding: '0.375rem 0.75rem',
+              minHeight: '38px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              color: value && !disabled ? '#212529' : '#6c757d'
+            }}
+          >
+            <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {selectedCourse ? (
+                <>
+                  <strong>{selectedCourse.title || selectedCourse.name || `Course ${selectedCourse.id}`}</strong>
+                  {selectedCourse.id && <span className="text-muted ms-1">(ID: {selectedCourse.id})</span>}
+                  {selectedCourse.category && <span className="text-muted ms-1">- {selectedCourse.category}</span>}
+                </>
+              ) : (
+                placeholder || 'Select a course'
+              )}
+            </span>
+            <span style={{ marginLeft: '10px' }}>
+              {isOpen ? '▲' : '▼'}
+            </span>
+          </div>
+
+          {isOpen && !disabled && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 'calc(100% + 2px)',
+                left: 0,
+                right: 0,
+                maxHeight: '300px',
+                backgroundColor: 'white',
+                border: '1px solid #ced4da',
+                borderRadius: '0.375rem',
+                zIndex: 1000,
+                boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+              }}
+            >
+              <div style={{ padding: '8px', borderBottom: '1px solid #e9ecef' }}>
+                <input
+                  ref={inputRef}
+                  type="text"
+                  className="form-control form-control-sm"
+                  placeholder="Search courses by title, category, ID..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                  style={{ fontSize: '0.875rem' }}
+                />
+              </div>
+
+              <div style={{ maxHeight: '220px', overflow: 'auto' }}>
+                {loadingCourses ? (
+                  <div className="text-center p-3">
+                    <div className="spinner-border spinner-border-sm text-primary" role="status">
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
+                    <div className="mt-1">Loading courses...</div>
+                  </div>
+                ) : filteredCourses.length === 0 ? (
+                  <div className="text-center p-3 text-muted">
+                    {searchTerm ? `No results found for "${searchTerm}"` : 'No courses available'}
+                  </div>
+                ) : (
+                  filteredCourses.map((course) => (
+                    <div
+                      key={course.id}
+                      className={`dropdown-option ${course.id === value ? 'active' : ''}`}
+                      style={{
+                        padding: '8px 12px',
+                        cursor: 'pointer',
+                        borderBottom: '1px solid #f8f9fa',
+                        backgroundColor: course.id === value ? '#e3f2fd' : 'transparent'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (course.id !== value) {
+                          e.currentTarget.style.backgroundColor = '#f8f9fa';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (course.id !== value) {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                        }
+                      }}
+                      onClick={() => handleSelect(course.id)}
+                    >
+                      <div className="fw-bold">
+                        {course.title || course.name || `Course ${course.id}`}
+                      </div>
+                      <div className="text-muted small">
+                        {course.id && `ID: ${course.id}`}
+                        {course.category && ` • ${course.category}`}
+                        {course.durationHours && ` • ${course.durationHours}h`}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // ========== RENDER ==========
+
   if (loading) {
     return (
       <div className="container-fluid">
@@ -330,23 +785,17 @@ export default function AdminCertifications({ user }) {
       {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
-          <h2 className="mb-1 fw-bold">📜 Certificate Management</h2>
-          <small className="text-muted">
+          <h2 className="mb-1 fw-bold">Certificate Management</h2>
+          <small className="text-muted" style={{ fontSize: "1rem" }}>
             Generate, manage, and revoke certificates for employees
           </small>
         </div>
         <div className="d-flex gap-2">
-          <button 
+          <button
             className="btn btn-primary"
             onClick={openGenerateModal}
           >
             ➕ Generate Certificate
-          </button>
-          <button 
-            className="btn btn-outline-secondary"
-            onClick={fetchCertificates}
-          >
-            🔄 Refresh
           </button>
         </div>
       </div>
@@ -370,25 +819,35 @@ export default function AdminCertifications({ user }) {
                 className="form-control"
                 placeholder="Search by employee name..."
                 value={filters.employeeName}
-                onChange={(e) => setFilters({...filters, employeeName: e.target.value})}
+                onChange={(e) => setFilters({ ...filters, employeeName: e.target.value })}
               />
             </div>
-            <div className="col-md-4">
+            <div className="col-md-3">
               <label className="form-label fw-bold">Course Name</label>
               <input
                 type="text"
                 className="form-control"
                 placeholder="Search by course name..."
                 value={filters.courseName}
-                onChange={(e) => setFilters({...filters, courseName: e.target.value})}
+                onChange={(e) => setFilters({ ...filters, courseName: e.target.value })}
               />
+            </div>
+            {/* Search Button - Now between Course Name and Status */}
+            <div className="col-md-1 d-flex align-items-end">
+              <button
+                className="btn btn-primary w-100"
+                onClick={fetchCertificates}
+                style={{ height: '38px' }}
+              >
+                🔍
+              </button>
             </div>
             <div className="col-md-3">
               <label className="form-label fw-bold">Status</label>
               <select
                 className="form-select"
                 value={filters.status}
-                onChange={(e) => setFilters({...filters, status: e.target.value})}
+                onChange={(e) => setFilters({ ...filters, status: e.target.value })}
               >
                 <option value="all">All Status</option>
                 <option value="ACTIVE">Active</option>
@@ -396,49 +855,58 @@ export default function AdminCertifications({ user }) {
                 <option value="EXPIRED">Expired</option>
               </select>
             </div>
-            <div className="col-md-1 d-flex align-items-end">
-              <button 
-                className="btn btn-primary w-100"
-                onClick={fetchCertificates}
-              >
-                🔍
-              </button>
-            </div>
           </div>
         </div>
       </div>
 
-      {/* Statistics Cards */}
-      <div className="row mb-4">
-        <div className="col-md-3">
-          <div className="card bg-primary text-white">
-            <div className="card-body">
-              <h5 className="card-title">Total</h5>
-              <h3>{certificates.length}</h3>
+      {/* Statistics Cards - Forced Single Row */}
+      <div className="stats-row mb-4">
+        <div className="stats-container">
+          <div className="stat-card-wrapper">
+            <div className="stat-card stat-total">
+              <div className="stat-icon-wrapper">
+                <span className="stat-icon">📊</span>
+              </div>
+              <div className="stat-info">
+                <span className="stat-label">Total Certificates</span>
+                <span className="stat-value">{certificates.length}</span>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="col-md-3">
-          <div className="card bg-success text-white">
-            <div className="card-body">
-              <h5 className="card-title">Active</h5>
-              <h3>{certificates.filter(c => c.status === 'ACTIVE').length}</h3>
+
+          <div className="stat-card-wrapper">
+            <div className="stat-card stat-active">
+              <div className="stat-icon-wrapper">
+                <span className="stat-icon">✅</span>
+              </div>
+              <div className="stat-info">
+                <span className="stat-label">Active</span>
+                <span className="stat-value">{certificates.filter(c => c.status === 'ACTIVE').length}</span>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="col-md-3">
-          <div className="card bg-danger text-white">
-            <div className="card-body">
-              <h5 className="card-title">Revoked</h5>
-              <h3>{certificates.filter(c => c.status === 'REVOKED').length}</h3>
+
+          <div className="stat-card-wrapper">
+            <div className="stat-card stat-revoked">
+              <div className="stat-icon-wrapper">
+                <span className="stat-icon">🚫</span>
+              </div>
+              <div className="stat-info">
+                <span className="stat-label">Revoked</span>
+                <span className="stat-value">{certificates.filter(c => c.status === 'REVOKED').length}</span>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="col-md-3">
-          <div className="card bg-warning text-dark">
-            <div className="card-body">
-              <h5 className="card-title">Expired</h5>
-              <h3>{certificates.filter(c => c.status === 'EXPIRED').length}</h3>
+
+          <div className="stat-card-wrapper">
+            <div className="stat-card stat-expired">
+              <div className="stat-icon-wrapper">
+                <span className="stat-icon">⏰</span>
+              </div>
+              <div className="stat-info">
+                <span className="stat-label">Expired</span>
+                <span className="stat-value">{certificates.filter(c => c.status === 'EXPIRED').length}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -508,7 +976,7 @@ export default function AdminCertifications({ user }) {
                           >
                             View
                           </button>
-                          
+
                           {/* Download Button */}
                           <button
                             className="btn btn-sm btn-outline-success"
@@ -521,7 +989,7 @@ export default function AdminCertifications({ user }) {
                               'Download'
                             )}
                           </button>
-                          
+
                           {/* Revoke Button - Only for Admin and Active certificates */}
                           {userRole === 'ADMIN' && cert.status === 'ACTIVE' && (
                             <button
@@ -556,9 +1024,9 @@ export default function AdminCertifications({ user }) {
                 <h5 className="modal-title">
                   {modalMode === 'generate' ? '🎯 Generate Certificate' : '📄 Certificate Details'}
                 </h5>
-                <button 
-                  type="button" 
-                  className="btn-close" 
+                <button
+                  type="button"
+                  className="btn-close"
                   onClick={() => {
                     setShowModal(false);
                     // Cleanup certificate image when closing modal
@@ -575,7 +1043,7 @@ export default function AdminCertifications({ user }) {
                     {/* Tab Navigation */}
                     <ul className="nav nav-tabs mb-3">
                       <li className="nav-item">
-                        <button 
+                        <button
                           className={`nav-link ${activeTab === 'manual' ? 'active' : ''}`}
                           onClick={() => setActiveTab('manual')}
                           type="button"
@@ -584,7 +1052,7 @@ export default function AdminCertifications({ user }) {
                         </button>
                       </li>
                       <li className="nav-item">
-                        <button 
+                        <button
                           className={`nav-link ${activeTab === 'auto' ? 'active' : ''}`}
                           onClick={() => setActiveTab('auto')}
                           type="button"
@@ -601,31 +1069,41 @@ export default function AdminCertifications({ user }) {
                         <div className="alert alert-info">
                           <strong>ℹ️ Manual Generation:</strong> Generate a certificate manually for any employee.
                         </div>
+
+                        {/* Searchable Employee Dropdown */}
                         <div className="mb-3">
-                          <label className="form-label fw-bold">Employee ID *</label>
-                          <input
-                            type="number"
-                            className="form-control"
-                            placeholder="Enter employee ID"
+                          <EmployeeSearchDropdown
                             value={manualGenerateForm.employeeId}
-                            onChange={(e) => setManualGenerateForm({
+                            onChange={(val) => setManualGenerateForm({
                               ...manualGenerateForm,
-                              employeeId: e.target.value
+                              employeeId: val
                             })}
+                            disabled={loadingEmployees}
+                            placeholder="Search and select an employee..."
+                            label="Employee"
+                            required
                           />
+                          {!loadingEmployees && employees.length === 0 && (
+                            <small className="text-danger">No employees found. Please add employees first.</small>
+                          )}
                         </div>
+
+                        {/* Searchable Course Dropdown */}
                         <div className="mb-3">
-                          <label className="form-label fw-bold">Course ID *</label>
-                          <input
-                            type="number"
-                            className="form-control"
-                            placeholder="Enter course ID"
+                          <CourseSearchDropdown
                             value={manualGenerateForm.courseId}
-                            onChange={(e) => setManualGenerateForm({
+                            onChange={(val) => setManualGenerateForm({
                               ...manualGenerateForm,
-                              courseId: e.target.value
+                              courseId: val
                             })}
+                            disabled={loadingCourses}
+                            placeholder="Search and select a course..."
+                            label="Course"
+                            required
                           />
+                          {!loadingCourses && courses.length === 0 && (
+                            <small className="text-danger">No courses found. Please add courses first.</small>
+                          )}
                         </div>
                         <div className="mb-3">
                           <label className="form-label fw-bold">Issue Date (Optional)</label>
@@ -672,30 +1150,34 @@ export default function AdminCertifications({ user }) {
                         <div className="alert alert-success">
                           <strong>🤖 Auto Generate:</strong> System checks eligibility and generates certificate.
                         </div>
+
+                        {/* Searchable Employee Dropdown */}
                         <div className="mb-3">
-                          <label className="form-label fw-bold">Employee ID *</label>
-                          <input
-                            type="number"
-                            className="form-control"
-                            placeholder="Enter employee ID"
+                          <EmployeeSearchDropdown
                             value={autoGenerateForm.employeeId}
-                            onChange={(e) => setAutoGenerateForm({
+                            onChange={(val) => setAutoGenerateForm({
                               ...autoGenerateForm,
-                              employeeId: e.target.value
+                              employeeId: val
                             })}
+                            disabled={loadingEmployees}
+                            placeholder="Search and select an employee..."
+                            label="Employee"
+                            required
                           />
                         </div>
+
+                        {/* Searchable Course Dropdown */}
                         <div className="mb-3">
-                          <label className="form-label fw-bold">Course ID *</label>
-                          <input
-                            type="number"
-                            className="form-control"
-                            placeholder="Enter course ID"
+                          <CourseSearchDropdown
                             value={autoGenerateForm.courseId}
-                            onChange={(e) => setAutoGenerateForm({
+                            onChange={(val) => setAutoGenerateForm({
                               ...autoGenerateForm,
-                              courseId: e.target.value
+                              courseId: val
                             })}
+                            disabled={loadingCourses}
+                            placeholder="Search and select a course..."
+                            label="Course"
+                            required
                           />
                         </div>
                         <button
@@ -719,17 +1201,17 @@ export default function AdminCertifications({ user }) {
 
                 {modalMode === 'view' && selectedCertificate && (
                   <div>
-                    {/* Certificate Preview - Shows the actual certificate */}
+                    {/* Certificate Preview */}
                     {certificateImageUrl && (
-                      <div className="certificate-preview mb-4" style={{ 
-                        border: '2px solid #ddd', 
-                        borderRadius: '10px', 
+                      <div className="certificate-preview mb-4" style={{
+                        border: '2px solid #ddd',
+                        borderRadius: '10px',
                         overflow: 'hidden',
                         background: 'white',
                         boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
                       }}>
-                        <iframe 
-                          src={certificateImageUrl} 
+                        <iframe
+                          src={certificateImageUrl}
                           style={{ width: '100%', height: '500px', border: 'none' }}
                           title="Certificate Preview"
                         />
@@ -739,11 +1221,11 @@ export default function AdminCertifications({ user }) {
                       </div>
                     )}
 
-                    {/* Fallback: If certificate image fails to load, show styled certificate */}
+                    {/* Fallback Certificate View */}
                     {!certificateImageUrl && (
-                      <div className="certificate-preview mb-4" style={{ 
-                        border: '2px solid #ddd', 
-                        borderRadius: '10px', 
+                      <div className="certificate-preview mb-4" style={{
+                        border: '2px solid #ddd',
+                        borderRadius: '10px',
                         padding: '20px',
                         background: 'white',
                         boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
@@ -752,7 +1234,7 @@ export default function AdminCertifications({ user }) {
                           <h3 className="text-primary">📜 Certificate of Completion</h3>
                           <hr />
                         </div>
-                        
+
                         <div className="row">
                           <div className="col-12 text-center">
                             <h5>This certificate is awarded to</h5>
@@ -790,7 +1272,7 @@ export default function AdminCertifications({ user }) {
                       </div>
                     )}
 
-                    {/* Certificate Details in a card */}
+                    {/* Certificate Details */}
                     <div className="card">
                       <div className="card-header bg-light">
                         <h6 className="mb-0">📋 Certificate Details</h6>
@@ -854,9 +1336,9 @@ export default function AdminCertifications({ user }) {
                 )}
               </div>
               <div className="modal-footer">
-                <button 
-                  type="button" 
-                  className="btn btn-secondary" 
+                <button
+                  type="button"
+                  className="btn btn-secondary"
                   onClick={() => {
                     setShowModal(false);
                     // Cleanup certificate image when closing modal
@@ -907,6 +1389,38 @@ export default function AdminCertifications({ user }) {
           </div>
         </div>
       )}
+
+      {/* Add CSS styles for the searchable dropdown */}
+      <style>{`
+        .searchable-dropdown-wrapper {
+          width: 100%;
+        }
+        
+        .dropdown-input-wrapper {
+          transition: all 0.2s ease;
+        }
+        
+        .dropdown-input-wrapper:hover:not(.focused) {
+          border-color: #86b7fe;
+        }
+        
+        .dropdown-input-wrapper.focused {
+          border-color: #86b7fe;
+          box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+        
+        .dropdown-option {
+          transition: background-color 0.15s ease;
+        }
+        
+        .dropdown-option:hover {
+          background-color: #f8f9fa !important;
+        }
+        
+        .dropdown-option.active {
+          background-color: #e3f2fd !important;
+        }
+      `}</style>
     </div>
   );
 }
