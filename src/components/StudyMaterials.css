@@ -124,6 +124,7 @@ body {
   gap: 1rem;
   flex-wrap: wrap;
   align-items: flex-end;
+  width: 100%;
 }
 
 .filter-section .filter-group {
@@ -167,6 +168,7 @@ body {
   gap: 0.5rem;
   align-items: center;
   padding-bottom: 0.1rem;
+  flex-shrink: 0;
 }
 
 /* Apply Filter Button */
@@ -1111,11 +1113,13 @@ body {
 
   .filter-section .filter-group {
     min-width: 100%;
+    width: 100%;
   }
 
   .filter-actions {
     width: 100%;
     flex-direction: row;
+    justify-content: stretch;
   }
 
   .btn-apply-filter,

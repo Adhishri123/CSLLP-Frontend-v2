@@ -1,6 +1,11 @@
 /* Certifications.css - Employee Certifications Dashboard */
 
-/* ===== STATISTICS CARDS - Same as Admin ===== */
+/* ===== PAGE PADDING ===== */
+.page-padding {
+  padding: 2rem;
+}
+
+/* ===== STATISTICS CARDS ===== */
 .stats-row {
   width: 100%;
   margin-bottom: 1.5rem;
@@ -54,10 +59,10 @@
   line-height: 1;
 }
 
-/* Individual stat colors */
 .stat-total .stat-icon {
   color: #764ba2;
 }
+
 .stat-total {
   border-left-color: #764ba2;
 }
@@ -65,6 +70,7 @@
 .stat-active .stat-icon {
   color: #38ef7d;
 }
+
 .stat-active {
   border-left-color: #38ef7d;
 }
@@ -72,6 +78,7 @@
 .stat-expired .stat-icon {
   color: #ffd200;
 }
+
 .stat-expired {
   border-left-color: #ffd200;
 }
@@ -79,6 +86,7 @@
 .stat-revoked .stat-icon {
   color: #f45c43;
 }
+
 .stat-revoked {
   border-left-color: #f45c43;
 }
@@ -106,10 +114,65 @@
   line-height: 1.2;
 }
 
-/* Icon hover animation */
 .stat-card:hover .stat-icon {
   transform: scale(1.1);
   transition: transform 0.3s ease;
+}
+
+/* ===== FILTER SELECT ===== */
+.filter-select-modern {
+  padding: 0.4rem 1.6rem 0.4rem 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 50px;
+  background: white;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #2d3748;
+  font-weight: 500;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'%3E%3Cpath fill='%234a5568' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+  height: 38px;
+}
+
+.filter-select-modern:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  outline: none;
+}
+
+.filter-select-modern:hover {
+  border-color: #667eea;
+}
+
+/* ===== REFRESH BUTTON ===== */
+.btn-refresh-clean {
+  background: transparent;
+  border: 1.5px solid #e2e8f0;
+  color: #4a5568;
+  padding: 0.5rem 1.2rem;
+  border-radius: 50px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.btn-refresh-clean:hover {
+  background: #f7fafc;
+  border-color: #667eea;
+  color: #667eea;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.15);
+}
+
+.refresh-icon {
+  font-size: 1rem;
 }
 
 /* ===== CERTIFICATE CARDS ===== */
@@ -135,8 +198,146 @@
   border-color: #0d6efd !important;
 }
 
-/* ===== RESPONSIVE ADJUSTMENTS ===== */
+/* ===== ACTION BUTTONS - FIXED ===== */
+.action-buttons-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.btn-action-cert {
+  padding: 0.5rem 0.75rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  white-space: nowrap;
+  height: 40px;
+  width: 100%;
+}
+
+.btn-action-cert:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.btn-action-cert .spinner-border {
+  width: 0.9rem;
+  height: 0.9rem;
+  border-width: 0.15rem;
+}
+
+/* Download Button */
+.btn-download-pdf {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  color: white;
+  box-shadow: 0 2px 10px rgba(67, 233, 123, 0.25);
+}
+
+.btn-download-pdf:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(67, 233, 123, 0.35);
+}
+
+.btn-download-pdf:disabled {
+  background: #e2e8f0;
+  color: #a0aec0;
+  box-shadow: none;
+}
+
+/* Preview Button */
+.btn-preview {
+  background: #e8f0fe;
+  color: #1a73e8;
+}
+
+.btn-preview:hover:not(:disabled) {
+  background: #d2e3fc;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(26, 115, 232, 0.2);
+}
+
+/* Share Button */
+.btn-share {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.btn-share:hover:not(:disabled) {
+  background: #fde68a;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(146, 64, 14, 0.2);
+}
+
+.btn-share:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  box-shadow: none;
+}
+
+/* Disabled state for download when certificate is revoked */
+.btn-disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+  box-shadow: none !important;
+}
+
+.btn-disabled:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* ===== MODAL BUTTONS ===== */
+.btn-close-modal {
+  padding: 0.5rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  min-width: 100px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #e2e8f0;
+  border: none;
+  color: #4a5568;
+  transition: all 0.3s ease;
+}
+
+.btn-close-modal:hover {
+  background: #cbd5e0;
+  transform: translateY(-2px);
+}
+
+/* ===== CERTIFICATE PREVIEW MODAL ===== */
+.certificate-preview-modal {
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.certificate-preview-modal iframe {
+  width: 100%;
+  height: 500px;
+  border: none;
+}
+
+/* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
+  .page-padding {
+    padding: 1rem;
+  }
+
   .stats-container {
     flex-wrap: wrap;
     gap: 0.75rem;
@@ -165,22 +366,57 @@
   .stat-value {
     font-size: 1.5rem;
   }
+
+  .action-buttons-grid {
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
+  }
+
+  .btn-action-cert {
+    height: 36px;
+    font-size: 0.75rem;
+    padding: 0.4rem 0.5rem;
+  }
+
+  .employee-certifications .certificate-preview {
+    min-height: 280px;
+  }
+
+  .filter-select-modern {
+    font-size: 0.75rem;
+    height: 34px;
+    padding: 0.2rem 1.2rem 0.2rem 0.6rem;
+  }
+
+  .btn-refresh-clean {
+    padding: 0.3rem 0.8rem;
+    font-size: 0.75rem;
+    height: 34px;
+  }
+
+  .certificate-preview-modal iframe {
+    height: 350px;
+  }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 576px) {
+  .page-padding {
+    padding: 0.6rem;
+  }
+
   .stat-card-wrapper {
     flex: 1 1 100%;
     max-width: 100%;
   }
 
   .stat-card {
-    height: 65px;
-    padding: 0.6rem 0.8rem;
+    height: 60px;
+    padding: 0.5rem 0.75rem;
   }
 
   .stat-icon-wrapper {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
   }
 
   .stat-icon {
@@ -191,52 +427,55 @@
     font-size: 1.25rem;
   }
 
+  .stat-label {
+    font-size: 0.6rem;
+  }
+
+  .action-buttons-grid {
+    gap: 0.3rem;
+  }
+
+  .btn-action-cert {
+    height: 32px;
+    font-size: 0.7rem;
+    padding: 0.3rem 0.4rem;
+  }
+
   .employee-certifications .certificate-preview {
-    min-height: 250px;
+    min-height: 220px;
+    padding: 1rem !important;
+  }
+
+  .certificate-preview-modal iframe {
+    height: 250px;
+  }
+
+  .btn-close-modal {
+    padding: 0.3rem 0.8rem;
+    font-size: 0.75rem;
+    min-width: 70px;
+    height: 34px;
   }
 }
 
-/* ===== MODAL STYLES ===== */
-.modal.fade.show {
-  display: block;
-  background-color: rgba(0, 0, 0, 0.5);
-}
+@media (max-width: 400px) {
+  .employee-certifications .certificate-preview {
+    min-height: 180px;
+    padding: 0.75rem !important;
+  }
 
-.modal.fade.show .modal-dialog {
-  margin-top: 50px;
-}
+  .employee-certifications .certificate-preview h4 {
+    font-size: 1rem !important;
+  }
 
-/* ===== BADGE STYLES ===== */
-.employee-certifications .badge {
-  font-size: 0.8rem;
-  padding: 6px 12px;
-}
+  .employee-certifications .certificate-preview h3 {
+    font-size: 1rem !important;
+    min-height: 40px !important;
+  }
 
-/* ===== TABLE/GRID STYLES ===== */
-.employee-certifications .card-footer .btn {
-  transition: all 0.2s ease;
-}
-
-.employee-certifications .card-footer .btn:hover {
-  transform: scale(1.02);
-}
-
-/* ===== SCROLLBAR STYLING ===== */
-.employee-certifications ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-.employee-certifications ::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
-}
-
-.employee-certifications ::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 10px;
-}
-
-.employee-certifications ::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  .btn-action-cert {
+    font-size: 0.6rem;
+    height: 28px;
+    padding: 0.2rem 0.3rem;
+  }
 }

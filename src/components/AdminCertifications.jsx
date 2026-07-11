@@ -1,4 +1,3 @@
-// AdminCertifications.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { certificateAPI, getUserById, getCourseById, getAllEmployees, getAllCourses } from '../services/api';
 import './AdminCertifications.css';
@@ -54,14 +53,12 @@ export default function AdminCertifications({ user }) {
     fetchCourses();
   }, [filters.status]);
 
-  // Reset active tab when modal opens
   useEffect(() => {
     if (showModal && modalMode === 'generate') {
       setActiveTab('manual');
     }
   }, [showModal, modalMode]);
 
-  // Cleanup URL object when component unmounts or certificate image changes
   useEffect(() => {
     return () => {
       if (certificateImageUrl) {
@@ -70,7 +67,6 @@ export default function AdminCertifications({ user }) {
     };
   }, [certificateImageUrl]);
 
-  // Click outside handler for employee dropdown
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (employeeDropdownRef.current && !employeeDropdownRef.current.contains(event.target)) {
@@ -82,7 +78,6 @@ export default function AdminCertifications({ user }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Click outside handler for course dropdown
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (courseDropdownRef.current && !courseDropdownRef.current.contains(event.target)) {
@@ -133,19 +128,14 @@ export default function AdminCertifications({ user }) {
       setLoading(true);
       setError(null);
 
-      // Fetch everything from backend
       const response = await certificateAPI.adminGetAllCertificates({
         status: filters.status !== "all" ? filters.status : undefined
       });
 
       if (response?.success && Array.isArray(response.data)) {
-
-        // Add employee & course names
         const enriched = await enrichCertificatesWithDetails(response.data);
 
-        // Filter on frontend
         const filteredCertificates = enriched.filter((cert) => {
-
           const employeeMatch =
             !filters.employeeName ||
             cert.employeeName
@@ -162,12 +152,10 @@ export default function AdminCertifications({ user }) {
         });
 
         setCertificates(filteredCertificates);
-
       } else {
         setCertificates([]);
         setError("No certificates found");
       }
-
     } catch (err) {
       console.error("Error fetching certificates:", err);
       setError("Failed to load certificates");
@@ -208,7 +196,6 @@ export default function AdminCertifications({ user }) {
     return enriched;
   };
 
-  // Function to fetch certificate image/PDF
   const fetchCertificateImage = async (certificateId) => {
     try {
       const response = await certificateAPI.adminDownloadCertificate(certificateId);
@@ -354,7 +341,6 @@ export default function AdminCertifications({ user }) {
     setShowModal(true);
     setActiveTab('manual');
     resetForms();
-    // Clear certificate image when opening generate modal
     if (certificateImageUrl) {
       URL.revokeObjectURL(certificateImageUrl);
       setCertificateImageUrl(null);
@@ -365,7 +351,6 @@ export default function AdminCertifications({ user }) {
     setSelectedCertificate(certificate);
     setModalMode('view');
     setShowModal(true);
-    // Fetch certificate image/PDF when viewing
     fetchCertificateImage(certificate.id);
   };
 
@@ -393,14 +378,12 @@ export default function AdminCertifications({ user }) {
 
   // ========== SEARCHABLE DROPDOWN COMPONENTS ==========
 
-  // Employee Dropdown with Search
   const EmployeeSearchDropdown = ({ value, onChange, disabled, placeholder, label, required }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
     const inputRef = useRef(null);
 
-    // Filter employees based on search term
     const filteredEmployees = employees.filter(employee => {
       if (!searchTerm) return true;
       const searchLower = searchTerm.toLowerCase();
@@ -421,7 +404,6 @@ export default function AdminCertifications({ user }) {
 
     const selectedEmployee = getSelectedEmployee();
 
-    // Click outside handler
     useEffect(() => {
       const handleClickOutside = (event) => {
         if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -579,14 +561,12 @@ export default function AdminCertifications({ user }) {
     );
   };
 
-  // Course Dropdown with Search
   const CourseSearchDropdown = ({ value, onChange, disabled, placeholder, label, required }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
     const inputRef = useRef(null);
 
-    // Filter courses based on search term
     const filteredCourses = courses.filter(course => {
       if (!searchTerm) return true;
       const searchLower = searchTerm.toLowerCase();
@@ -607,7 +587,6 @@ export default function AdminCertifications({ user }) {
 
     const selectedCourse = getSelectedCourse();
 
-    // Click outside handler
     useEffect(() => {
       const handleClickOutside = (event) => {
         if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -765,8 +744,6 @@ export default function AdminCertifications({ user }) {
     );
   };
 
-  // ========== RENDER ==========
-
   if (loading) {
     return (
       <div className="container-fluid">
@@ -785,16 +762,11 @@ export default function AdminCertifications({ user }) {
       {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
-          <h2 className="mb-1 fw-bold">Certificate Management</h2>
-          <small className="text-muted" style={{ fontSize: "1rem" }}>
-            Generate, manage, and revoke certificates for employees
-          </small>
+          <h2 className="header-title">Certificate Management</h2>
+          <p className="header-subtitle">Generate, manage, and revoke certificates for employees</p>
         </div>
         <div className="d-flex gap-2">
-          <button
-            className="btn btn-primary"
-            onClick={openGenerateModal}
-          >
+          <button className="btn btn-primary btn-generate" onClick={openGenerateModal}>
             ➕ Generate Certificate
           </button>
         </div>
@@ -832,13 +804,8 @@ export default function AdminCertifications({ user }) {
                 onChange={(e) => setFilters({ ...filters, courseName: e.target.value })}
               />
             </div>
-            {/* Search Button - Now between Course Name and Status */}
             <div className="col-md-1 d-flex align-items-end">
-              <button
-                className="btn btn-primary w-100"
-                onClick={fetchCertificates}
-                style={{ height: '38px' }}
-              >
+              <button className="btn btn-primary w-100" onClick={fetchCertificates} style={{ height: '38px' }}>
                 🔍
               </button>
             </div>
@@ -859,7 +826,7 @@ export default function AdminCertifications({ user }) {
         </div>
       </div>
 
-      {/* Statistics Cards - Forced Single Row */}
+      {/* Statistics Cards */}
       <div className="stats-row mb-4">
         <div className="stats-container">
           <div className="stat-card-wrapper">
@@ -926,7 +893,7 @@ export default function AdminCertifications({ user }) {
                   <th>Issue Date</th>
                   <th>Expiry Date</th>
                   <th>Status</th>
-                  <th style={{ minWidth: '200px' }}>Actions</th>
+                  <th style={{ minWidth: '280px' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -969,38 +936,30 @@ export default function AdminCertifications({ user }) {
                       </td>
                       <td>
                         <div className="action-buttons">
-                          {/* View Button */}
-                          <button
-                            className="btn btn-sm btn-outline-primary"
-                            onClick={() => openViewModal(cert)}
-                          >
-                            View
+                          <button className="btn-action btn-view" onClick={() => openViewModal(cert)}>
+                            👁️ View
                           </button>
-
-                          {/* Download Button */}
                           <button
-                            className="btn btn-sm btn-outline-success"
+                            className="btn-action btn-download"
                             onClick={() => handleDownloadCertificate(cert.id)}
                             disabled={downloading === cert.id}
                           >
                             {downloading === cert.id ? (
                               <span className="spinner-border spinner-border-sm"></span>
                             ) : (
-                              'Download'
+                              '📥 Download'
                             )}
                           </button>
-
-                          {/* Revoke Button - Only for Admin and Active certificates */}
                           {userRole === 'ADMIN' && cert.status === 'ACTIVE' && (
                             <button
-                              className="btn btn-sm btn-outline-danger"
+                              className="btn-action btn-revoke"
                               onClick={() => handleRevokeCertificate(cert.id)}
                               disabled={revoking}
                             >
                               {revoking ? (
                                 <span className="spinner-border spinner-border-sm"></span>
                               ) : (
-                                'Revoke'
+                                '🔒 Revoke'
                               )}
                             </button>
                           )}
@@ -1017,7 +976,7 @@ export default function AdminCertifications({ user }) {
 
       {/* Generate/View Modal */}
       {showModal && (
-        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} tabIndex="-1">
+        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }} tabIndex="-1">
           <div className="modal-dialog modal-lg">
             <div className="modal-content">
               <div className="modal-header">
@@ -1029,7 +988,6 @@ export default function AdminCertifications({ user }) {
                   className="btn-close"
                   onClick={() => {
                     setShowModal(false);
-                    // Cleanup certificate image when closing modal
                     if (certificateImageUrl) {
                       URL.revokeObjectURL(certificateImageUrl);
                       setCertificateImageUrl(null);
@@ -1040,7 +998,6 @@ export default function AdminCertifications({ user }) {
               <div className="modal-body">
                 {modalMode === 'generate' && (
                   <div>
-                    {/* Tab Navigation */}
                     <ul className="nav nav-tabs mb-3">
                       <li className="nav-item">
                         <button
@@ -1062,22 +1019,16 @@ export default function AdminCertifications({ user }) {
                       </li>
                     </ul>
 
-                    {/* Tab Content */}
                     <div className="tab-content">
-                      {/* Manual Generate Tab */}
                       <div className={`tab-pane fade ${activeTab === 'manual' ? 'show active' : ''}`}>
                         <div className="alert alert-info">
                           <strong>ℹ️ Manual Generation:</strong> Generate a certificate manually for any employee.
                         </div>
 
-                        {/* Searchable Employee Dropdown */}
                         <div className="mb-3">
                           <EmployeeSearchDropdown
                             value={manualGenerateForm.employeeId}
-                            onChange={(val) => setManualGenerateForm({
-                              ...manualGenerateForm,
-                              employeeId: val
-                            })}
+                            onChange={(val) => setManualGenerateForm({ ...manualGenerateForm, employeeId: val })}
                             disabled={loadingEmployees}
                             placeholder="Search and select an employee..."
                             label="Employee"
@@ -1088,14 +1039,10 @@ export default function AdminCertifications({ user }) {
                           )}
                         </div>
 
-                        {/* Searchable Course Dropdown */}
                         <div className="mb-3">
                           <CourseSearchDropdown
                             value={manualGenerateForm.courseId}
-                            onChange={(val) => setManualGenerateForm({
-                              ...manualGenerateForm,
-                              courseId: val
-                            })}
+                            onChange={(val) => setManualGenerateForm({ ...manualGenerateForm, courseId: val })}
                             disabled={loadingCourses}
                             placeholder="Search and select a course..."
                             label="Course"
@@ -1105,32 +1052,29 @@ export default function AdminCertifications({ user }) {
                             <small className="text-danger">No courses found. Please add courses first.</small>
                           )}
                         </div>
+
                         <div className="mb-3">
                           <label className="form-label fw-bold">Issue Date (Optional)</label>
                           <input
                             type="date"
                             className="form-control"
                             value={manualGenerateForm.issueDate}
-                            onChange={(e) => setManualGenerateForm({
-                              ...manualGenerateForm,
-                              issueDate: e.target.value
-                            })}
+                            onChange={(e) => setManualGenerateForm({ ...manualGenerateForm, issueDate: e.target.value })}
                           />
                         </div>
+
                         <div className="mb-3">
                           <label className="form-label fw-bold">Expiry Date (Optional)</label>
                           <input
                             type="date"
                             className="form-control"
                             value={manualGenerateForm.expiryDate}
-                            onChange={(e) => setManualGenerateForm({
-                              ...manualGenerateForm,
-                              expiryDate: e.target.value
-                            })}
+                            onChange={(e) => setManualGenerateForm({ ...manualGenerateForm, expiryDate: e.target.value })}
                           />
                         </div>
+
                         <button
-                          className="btn btn-primary w-100"
+                          className="btn-generate-action btn-primary"
                           onClick={handleGenerateCertificate}
                           disabled={generating || !manualGenerateForm.employeeId || !manualGenerateForm.courseId}
                         >
@@ -1145,20 +1089,15 @@ export default function AdminCertifications({ user }) {
                         </button>
                       </div>
 
-                      {/* Auto Generate Tab */}
                       <div className={`tab-pane fade ${activeTab === 'auto' ? 'show active' : ''}`}>
                         <div className="alert alert-success">
                           <strong>🤖 Auto Generate:</strong> System checks eligibility and generates certificate.
                         </div>
 
-                        {/* Searchable Employee Dropdown */}
                         <div className="mb-3">
                           <EmployeeSearchDropdown
                             value={autoGenerateForm.employeeId}
-                            onChange={(val) => setAutoGenerateForm({
-                              ...autoGenerateForm,
-                              employeeId: val
-                            })}
+                            onChange={(val) => setAutoGenerateForm({ ...autoGenerateForm, employeeId: val })}
                             disabled={loadingEmployees}
                             placeholder="Search and select an employee..."
                             label="Employee"
@@ -1166,22 +1105,19 @@ export default function AdminCertifications({ user }) {
                           />
                         </div>
 
-                        {/* Searchable Course Dropdown */}
                         <div className="mb-3">
                           <CourseSearchDropdown
                             value={autoGenerateForm.courseId}
-                            onChange={(val) => setAutoGenerateForm({
-                              ...autoGenerateForm,
-                              courseId: val
-                            })}
+                            onChange={(val) => setAutoGenerateForm({ ...autoGenerateForm, courseId: val })}
                             disabled={loadingCourses}
                             placeholder="Search and select a course..."
                             label="Course"
                             required
                           />
                         </div>
+
                         <button
-                          className="btn btn-success w-100"
+                          className="btn-generate-action btn-success"
                           onClick={handleAutoGenerate}
                           disabled={generating || !autoGenerateForm.employeeId || !autoGenerateForm.courseId}
                         >
@@ -1201,18 +1137,10 @@ export default function AdminCertifications({ user }) {
 
                 {modalMode === 'view' && selectedCertificate && (
                   <div>
-                    {/* Certificate Preview */}
                     {certificateImageUrl && (
-                      <div className="certificate-preview mb-4" style={{
-                        border: '2px solid #ddd',
-                        borderRadius: '10px',
-                        overflow: 'hidden',
-                        background: 'white',
-                        boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
-                      }}>
+                      <div className="certificate-preview mb-4">
                         <iframe
                           src={certificateImageUrl}
-                          style={{ width: '100%', height: '500px', border: 'none' }}
                           title="Certificate Preview"
                         />
                         <div className="text-center p-2 bg-light">
@@ -1221,15 +1149,8 @@ export default function AdminCertifications({ user }) {
                       </div>
                     )}
 
-                    {/* Fallback Certificate View */}
                     {!certificateImageUrl && (
-                      <div className="certificate-preview mb-4" style={{
-                        border: '2px solid #ddd',
-                        borderRadius: '10px',
-                        padding: '20px',
-                        background: 'white',
-                        boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
-                      }}>
+                      <div className="certificate-preview mb-4" style={{ padding: '20px' }}>
                         <div className="text-center mb-3">
                           <h3 className="text-primary">📜 Certificate of Completion</h3>
                           <hr />
@@ -1272,7 +1193,6 @@ export default function AdminCertifications({ user }) {
                       </div>
                     )}
 
-                    {/* Certificate Details */}
                     <div className="card">
                       <div className="card-header bg-light">
                         <h6 className="mb-0">📋 Certificate Details</h6>
@@ -1335,13 +1255,13 @@ export default function AdminCertifications({ user }) {
                   </div>
                 )}
               </div>
+
               <div className="modal-footer">
                 <button
                   type="button"
-                  className="btn btn-secondary"
+                  className="btn-close-modal"
                   onClick={() => {
                     setShowModal(false);
-                    // Cleanup certificate image when closing modal
                     if (certificateImageUrl) {
                       URL.revokeObjectURL(certificateImageUrl);
                       setCertificateImageUrl(null);
@@ -1353,7 +1273,7 @@ export default function AdminCertifications({ user }) {
                 {modalMode === 'view' && selectedCertificate && (
                   <>
                     <button
-                      className="btn btn-success"
+                      className="btn-download-pdf"
                       onClick={() => handleDownloadCertificate(selectedCertificate.id)}
                       disabled={downloading === selectedCertificate.id}
                     >
@@ -1368,7 +1288,7 @@ export default function AdminCertifications({ user }) {
                     </button>
                     {userRole === 'ADMIN' && selectedCertificate.status === 'ACTIVE' && (
                       <button
-                        className="btn btn-danger"
+                        className="btn-revoke-cert"
                         onClick={() => handleRevokeCertificate(selectedCertificate.id)}
                         disabled={revoking}
                       >
@@ -1389,38 +1309,6 @@ export default function AdminCertifications({ user }) {
           </div>
         </div>
       )}
-
-      {/* Add CSS styles for the searchable dropdown */}
-      <style>{`
-        .searchable-dropdown-wrapper {
-          width: 100%;
-        }
-        
-        .dropdown-input-wrapper {
-          transition: all 0.2s ease;
-        }
-        
-        .dropdown-input-wrapper:hover:not(.focused) {
-          border-color: #86b7fe;
-        }
-        
-        .dropdown-input-wrapper.focused {
-          border-color: #86b7fe;
-          box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-        }
-        
-        .dropdown-option {
-          transition: background-color 0.15s ease;
-        }
-        
-        .dropdown-option:hover {
-          background-color: #f8f9fa !important;
-        }
-        
-        .dropdown-option.active {
-          background-color: #e3f2fd !important;
-        }
-      `}</style>
     </div>
   );
 }

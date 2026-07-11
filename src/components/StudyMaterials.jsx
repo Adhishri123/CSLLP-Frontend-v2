@@ -775,11 +775,11 @@ export default function StudyMaterials() {
           </small>
         </div>
 
-        {/* 🆕 UPDATED: Add Material Button - Right side, smaller size */}
+        {/* Add Material Button */}
         {hasUploadPermission(user) && (
-          <div className="ms-auto">
+          <div className="ms-3">
             <button
-              className="btn btn-dark btn-add-small shadow-sm"
+              className="btn-add-small"
               onClick={() => {
                 resetForm();
                 setShowForm(true);
@@ -787,17 +787,8 @@ export default function StudyMaterials() {
               title="Add New Material"
               disabled={actionLoading}
             >
-              {actionLoading === 'submit' ? (
-                <>
-                  <span className="spinner-border spinner-border-sm me-2" />
-                  Loading...
-                </>
-              ) : (
-                <>
-                  <span className="btn-add-icon">+</span>
-                  <span className="btn-add-text">Add Material</span>
-                </>
-              )}
+              <span className="btn-add-icon">+</span>
+              <span className="btn-add-text">Add Material</span>
             </button>
           </div>
         )}
