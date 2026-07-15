@@ -3,6 +3,7 @@ import { authLogin, forgotPassword, verifyOtp, resetPassword, saveUserToStorage 
 import logo from '../images/logo.webp';
 import { motion } from 'framer-motion';
 import {GraduationCap, ShieldCheck, ChartNoAxesCombined} from "lucide-react";
+import buildingBg from '../images/Backgroundimg.png'
 
 export default function Login({ onLogin }) {
   const [email, setEmail] = useState('');
@@ -320,8 +321,9 @@ const logoAnimation = {
       {/* ── Full-page study background ── */}
       <div style={{
         minHeight: '100vh',
-        backgroundImage: `url(https://images.unsplash.com/photo-1531259736756-6caccf485f81?w=1800&h=1000&fit=crop&auto=format)`,
+        // backgroundImage: `url(D:\Config Server LLP\Backend-csllp\CSLLP-FRONTEND\src\images\Backgroundimg.webp)`,
         // backgroundColor: 'rgba(43, 41, 41, 0.88)',
+        backgroundImage: `url(${buildingBg})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         display: 'flex',

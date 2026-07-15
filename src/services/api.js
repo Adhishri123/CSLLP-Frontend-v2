@@ -386,7 +386,7 @@ export async function getEmployeeSummaries() {
 export const uploadProfilePhoto = async (userId, formData) => {
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch(`${USER_BASE}/api/users/${userId}/profile-photo`, {
+    const response = await authFetch(`${USER_BASE}/api/users/${userId}/profile-photo`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -406,6 +406,17 @@ export const uploadProfilePhoto = async (userId, formData) => {
     console.error('Upload error:', error);
     throw error;
   }
+};
+
+export const getFullImageUrl = (path) => {
+
+   if (!path) return "/default-avatar.png";
+
+    if (path.startsWith("http")) {
+        return path;
+    }
+
+    return `http://localhost:8080${path}`;
 };
 
 
